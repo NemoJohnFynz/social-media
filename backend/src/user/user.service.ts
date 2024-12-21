@@ -306,19 +306,19 @@ export class UserService {
     // Tìm các bạn bè mà sender hoặc receiver là userId
     const friendList = await this.FriendModel.find({
       $or: [
-        { sender: UserOBJ },
-        { receiver: UserOBJ }
+        { sender: userId },
+        { receiver: userId }
       ]
     })
     .populate({
       path: 'sender',
       select: 'firstName lastName avatar',
-      match: { _id: { $ne: UserOBJ } }
+      match: { _id: { $ne: userId } }
     })
     .populate({
       path: 'receiver',
       select: 'firstName lastName avatar',
-      match: { _id: { $ne: UserOBJ } }
+      match: { _id: { $ne: userId } }
     })
     .exec();
   

@@ -60,6 +60,7 @@ export class ChatController {
 
         const messageSee = {
           ...sendMessageDto,
+          mediaURL : message.mediaURL,
           author: currentAuthor,
 
         };
@@ -158,6 +159,7 @@ export class ChatController {
   
         const messageSee = {
           ...sendMessageDto,
+          mediaURL : message.mediaURL,
           author: currentAuthor,
         };
   
