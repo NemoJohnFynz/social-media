@@ -12,6 +12,6 @@ import { UserModule } from '../user/user.module';
         UserModule,
     ],
     controllers: [FriendController],
-    providers: [FriendService, AuthGuardD],
+    providers: [FriendService, AuthGuardD,],
 })
 export class FriendModule {}

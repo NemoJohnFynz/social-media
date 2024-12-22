@@ -31,14 +31,18 @@ import { FriendSchema } from './schemas/friend.schema';
         };
       },
     }),
-    OtpModule,
-    MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
-    MongooseModule.forFeature([{ name: 'FriendRequest', schema:FriendRequestSchema}]),
-    MongooseModule.forFeature([{ name: 'Friend', schema:FriendSchema}]),
+
+
+      MongooseModule.forFeature([
+        { name: 'User', schema: UserSchema },
+        { name: 'FriendRequest', schema: FriendRequestSchema },
+        { name: 'Friend', schema: FriendSchema }
+      ]),
+      OtpModule,
 
   ],
   controllers: [UserController],
-  providers: [UserService, OtpService, CloudinaryService],
+  providers: [UserService, OtpService, CloudinaryService, ],
   exports:[UserService,JwtModule,UserModule, MongooseModule]
 })
 export class UserModule {}

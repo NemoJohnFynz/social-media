@@ -17,7 +17,7 @@ import { UserModule } from '../user/user.module';
     
   ],
   controllers: [PostController],
-  providers: [PostService],
+  providers: [PostService, ],
   exports: [MongooseModule, PostService],
 })
 export class PostModule {}
