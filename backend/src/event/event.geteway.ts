@@ -13,14 +13,16 @@ import {
   import { CurrentUser } from 'src/user/decorator/currentUser.decorator';
   import { Types } from 'mongoose';
 
-  
-  @WebSocketGateway(3002, {
+  // proxy ngược 
+  // forwar proxy
+  @WebSocketGateway({
     cors: {
-      origin: "http://localhost:3000", 
+      origin: ['http://localhost:3000'],
       methods: ["GET", "POST"],
       allowedHeaders: ["Authorization"],
     },
   })
+  
   
 
   export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -59,7 +61,7 @@ async handleConnection(client: Socket) {
 handleDisconnect(client: Socket) {
   console.log('Disconnected client:', client.id);
   this.activeUsers.delete(client.id);
-  console.log('Remaining active users:', Array.from(this.activeUsers.entries())); // Log sau khi client ngắt kết nối
+  console.log('Remaining active users:', Array.from(this.activeUsers.entries()));
 }
 
   
