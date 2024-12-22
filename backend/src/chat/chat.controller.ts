@@ -53,12 +53,14 @@ export class ChatController {
         const message = await this.chatService.sendMessageToGroup(sendMessageDto, currentUserID, groupId, files?.files);
 
         const currentAuthor = {
+          _id: currentUser._id,
           firstName: currentUser.firstName,
           lastName: currentUser.lastName,
           avatar: currentUser.avatar, 
         };
 
         const messageSee = {
+          _id  : message._id,
           ...sendMessageDto,
           mediaURL : message.mediaURL,
           author: currentAuthor,
