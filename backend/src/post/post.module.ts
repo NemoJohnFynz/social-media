@@ -6,6 +6,8 @@ import { PostSchema } from './schemas/post.schema';
 import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 import { UserSchema } from '../user/schemas/user.schemas';
 import { UserModule } from '../user/user.module';
+import { EventService } from 'src/event/event.service';
+import { EventModule } from 'src/event/event.module';
 
 
 @Global()
@@ -14,10 +16,11 @@ import { UserModule } from '../user/user.module';
     MongooseModule.forFeature([{name: 'Post' , schema: PostSchema }, {name: 'User', schema: UserSchema}]),
     CloudinaryModule,
     UserModule,
-    
+    EventModule,
   ],
   controllers: [PostController],
-  providers: [PostService, ],
+  providers: [PostService, EventService],
   exports: [MongooseModule, PostService],
 })
 export class PostModule {}
+

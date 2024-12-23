@@ -10,7 +10,7 @@ import { User } from 'src/user/schemas/user.schemas';
 
 export class Group extends Document {
 
-    @Prop()
+    @Prop({ required: true })
     name: string;
 
     @Prop()

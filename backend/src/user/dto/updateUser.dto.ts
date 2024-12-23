@@ -20,4 +20,8 @@ export class UpdateUserDto {
     @IsOptional()
     @IsString()
     readonly birthday: string;
+
+    @IsOptional()
+    @IsString()
+    readonly email: string;
 }

@@ -6,11 +6,16 @@ import { CurrentUser } from '../user/decorator/currentUser.decorator';
 import { User } from '../user/schemas/user.schemas'
 import { RolesGuard } from '../user/guard/role.guard';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { EventService } from 'src/event/event.service';
 
 @Controller('comments')
 @UseGuards(AuthGuardD)
 export class CommentController {
-  constructor(private readonly commentService: CommentService) { }
+  constructor(
+    private readonly commentService: CommentService,
+    private readonly eventService: EventService,
+
+  ) { }
 
 
 
@@ -30,7 +35,29 @@ export class CommentController {
     console.log('Current User:', currentUser);
     console.log('Uploaded Files:', files);
 
-    return this.commentService.create(currentUser._id.toString(), postId, commetDto, files.files);
+   const { comment, authorId } = await this.commentService.create(currentUser._id.toString(), postId, commetDto, files?.files);
+   const notification = {
+    title: 'new comment in post',
+    body: `new comment from ${currentUser.firstName} ${currentUser.lastName}`,
+    data: {
+      postId: postId,
+      userId: currentUser._id.toString(),
+      type: 'comment',
+      commetcontet : commetDto.content,
+      commetmediaURL : commetDto.img,
+      CommentId : comment._id.toString(),
+    },
+  }
+  const notiFiUser = [  
+    {user: currentUser._id.toString()},
+    {user : authorId}
+  ]
+
+    notiFiUser.map(async (noti) => {
+       this.eventService.notificationToUser(noti.user, 'new comment in post', notification );
+    })
+   
+   return comment;
   }
 
   @Get()
@@ -75,7 +102,28 @@ export class CommentController {
       throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
     }
 
-    return await this.commentService.likeComment(id, currentUser._id.toString());
+    const {authorId,comment} = await this.commentService.likeComment(id, currentUser._id.toString());
+    const notification = {
+      title: 'new like in comment',
+      body: `new like from ${currentUser.firstName} ${currentUser.lastName}`,
+      avatar: currentUser.avatar,
+      data: {
+        postId: comment.post._id.toString(),
+        userId: currentUser._id.toString(),
+        type: 'like',
+        CommentId : comment._id.toString()
+      },
+    }
+    this.eventService.notificationToUser(authorId, 'new like in comment', notification );
+  }
+
+  @Put(':id/unlike')
+  @UseGuards(AuthGuardD)
+  async unlikeComment(@Param('id') id: string, @CurrentUser() currentUser: User) {
+    if (!currentUser) {
+      throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
+    }
+    return await this.commentService.unlikeComment(id, currentUser._id.toString());
   }
 
   @Post(':id/reply')
@@ -91,7 +139,7 @@ export class CommentController {
       throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
     }
 
-    return await this.commentService.reply(id, currentUser._id.toString(), replyDto, files.files);
+    return await this.commentService.reply(id, currentUser._id.toString(), replyDto, files?.files);
   }
 }
 

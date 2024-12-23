@@ -12,6 +12,8 @@ import { OtpService } from 'src/otp/otp.service';
 import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { FriendSchema } from './schemas/friend.schema';
+import { EventModule } from '../event/event.module';
+import { EventService } from '../event/event.service';
 
 @Global()
 @Module({
@@ -31,18 +33,15 @@ import { FriendSchema } from './schemas/friend.schema';
         };
       },
     }),
+    OtpModule,
 
-
-      MongooseModule.forFeature([
-        { name: 'User', schema: UserSchema },
-        { name: 'FriendRequest', schema: FriendRequestSchema },
-        { name: 'Friend', schema: FriendSchema }
-      ]),
-      OtpModule,
+    MongooseModule.forFeature([{ name: 'User', schema: UserSchema }]),
+    MongooseModule.forFeature([{ name: 'FriendRequest', schema:FriendRequestSchema}]),
+    MongooseModule.forFeature([{ name: 'Friend', schema:FriendSchema}]),
 
   ],
   controllers: [UserController],
-  providers: [UserService, OtpService, CloudinaryService, ],
+  providers: [UserService, OtpService, CloudinaryService, EventService],
   exports:[UserService,JwtModule,UserModule, MongooseModule]
 })
 export class UserModule {}

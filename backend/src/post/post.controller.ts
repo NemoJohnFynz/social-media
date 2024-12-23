@@ -6,12 +6,14 @@ import { CreatePostDto } from './dto/createpost.dto';
 import { CurrentUser } from '../user/decorator/currentUser.decorator';
 import { User } from '../user/schemas/user.schemas';
 import { OptionalAuthGuard } from '../user/guard/optional.guard';
+import { EventService } from 'src/event/event.service';
 
 @Controller('post')
 export class PostController {
 
     constructor(
-        private postService: PostService
+        private postService: PostService,
+        private eventService: EventService,
     ) { }
 
 
@@ -49,8 +51,26 @@ export class PostController {
         if (!currentUser) {
             throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
         }
-
-        return await this.postService.likePost(id, currentUser._id.toString());
+        
+        const notification = {
+            title: 'new like in post',
+            body: `new like from ${currentUser.firstName} ${currentUser.lastName}`,
+            avatart : currentUser.avatar,
+            data: {
+              postId: id,
+              userId: currentUser._id.toString(),
+              type: 'like',
+            },
+        }
+        try {
+            const {authorId, post} = await this.postService.likePost(id, currentUser._id.toString());
+            this.eventService.notificationToUser(authorId, 'new like in post', notification );
+            return post;
+        } catch (error) {
+            throw new HttpException('An error occurred while liking post', HttpStatus.INTERNAL_SERVER_ERROR);
+            
+        }
+        
     }
     @Put(':id/unlike')
     @UseGuards(AuthGuardD)

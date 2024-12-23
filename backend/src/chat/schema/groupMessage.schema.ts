@@ -18,7 +18,7 @@ export class GroupMessage extends Document {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   sender: User;
 
-  @Prop({ required: true })
+  @Prop()
   content: string;
 
   @Prop() 

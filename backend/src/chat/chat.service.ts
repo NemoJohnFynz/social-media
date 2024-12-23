@@ -10,6 +10,7 @@ import { content } from 'googleapis/build/src/apis/content';
 import { Group } from './schema/group.schema';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { RoomChat } from './schema/roomChat.schema';
+import { addMembersToGroupDto } from './dto/addMemberGroup.dto';
 
 @Injectable()
 export class ChatService {
@@ -25,12 +26,14 @@ export class ChatService {
 
     async createGroup(createGroupDto: CreateGroupDto, userId: Types.ObjectId){
         const { name, avatarGroup, participants } = createGroupDto;
-
+        const participantIds = participants.map(participant =>
+          new Types.ObjectId(participant)
+      );
         const group = new this.GroupModel({
           name,
           avatarGroup,
           owner: userId,
-          participants: [...participants, userId],
+          participants: [...participantIds, userId],
         });
     
         return await group.save();
@@ -72,13 +75,16 @@ export class ChatService {
     }
     
 
-    async getGroupMessages(groupId: Types.ObjectId): Promise<{ group: any; messages?: GroupMessage[] ,message?: string}> {
+    async getGroupMessages(groupId: Types.ObjectId): Promise<{ group: any; messages: GroupMessage[] }> {
      
       const group = await this.GroupModel.findById(groupId)
-      .select('-participants')
         .populate({ 
           path: 'owner', 
           select: 'firstName lastName avatar' 
+        })
+        .populate({ 
+          path: 'participants', 
+          select: 'firstName lastName avatar'
         })
         .exec();
     
@@ -94,9 +100,7 @@ export class ChatService {
         .exec();
     
       if (!messages.length) { 
-        return {
-          group, message : 'group has no message'
-        }
+        throw new HttpException('Group has no messages', HttpStatus.NOT_FOUND);
       }
 
       return { group, messages };
@@ -129,6 +133,7 @@ export class ChatService {
     async getMylishChat(userId: string | Types.ObjectId): Promise<{ Group: Group[]; Participants: any[] }> {
       const userObjectId = typeof userId === 'string' ? new Types.ObjectId(userId) : userId;
     
+
       const distinctUserIds = await this.MessageModel.distinct('sender', {
         $or: [
           { sender: userObjectId },
@@ -136,8 +141,10 @@ export class ChatService {
         ],
       }).then(ids => ids.map(id => id.toString()));
     
+
       const normalizeIds = (ids: (string | Types.ObjectId)[]) => {
         return ids.map(id => {
+
           if (typeof id === 'string' && Types.ObjectId.isValid(id)) {
             return new Types.ObjectId(id);
           }
@@ -145,26 +152,26 @@ export class ChatService {
         });
       };
     
-      // Lấy các participants (người tham gia khác với user hiện tại) và sắp xếp theo tin nhắn mới nhất
+      // Lấy các participants (người tham gia khác với user hiện tại)
       const participants = await this.UserModel.find({
         _id: { $in: normalizeIds(distinctUserIds), $ne: userObjectId }, // Exclude the current user
-      })
-      .select('firstName lastName avatar')
-      .sort({ 'messages.createdAt': -1 }); // Sắp xếp theo tin nhắn mới nhất
+      }).select('firstName lastName avatar')
+      // .sort({createdAt : -1})
     
-      // Lấy nhóm mà user tham gia và sắp xếp theo tin nhắn mới nhất
+      // Lấy nhóm mà user tham gia
       const groups = await this.GroupModel.find({
         participants: { $in: normalizeIds([userObjectId]) }, // Normalize userObjectId
-      })
-      .select('name avatarGroup')
-      .sort({ 'messages.createdAt': -1 }) // Sắp xếp theo tin nhắn mới nhất
+      }).select('name avatarGroup')
+      // .sort({createdAt : -1})
       .exec();
-    
       return {
         Group: groups,
         Participants: participants,
       };
     }
+    
+    
+    
 
     async removeMemberInGroup(groupId: Types.ObjectId, userId: Types.ObjectId): Promise<Group> {
       const group = await this.GroupModel.findById(groupId);
@@ -254,33 +261,86 @@ export class ChatService {
     }
     
 
-    async revokeAMessage(messageId: Types.ObjectId, userId: Types.ObjectId): Promise<Message> {
-      // Tìm tin nhắn theo ID
-      const message = await this.MessageModel.findById(messageId);
-      console.log(message, ', message);');
+    async revokeAMessage(messageId: Types.ObjectId, userId: Types.ObjectId): Promise<Message | GroupMessage> {
+      // Tìm tin nhắn trong MessageModel
+      let message = await this.MessageModel.findById(messageId);
+      let messageSource = 'MessageModel';
     
+
+      if (!message) {
+        message = await this.GroupMessageModel.findById(messageId);
+        messageSource = 'GroupMessageModel';
+      }
+    
+
       if (!message) {
         throw new HttpException('Message not found', HttpStatus.NOT_FOUND);
       }
     
+
       if (message.sender.toString() !== userId.toString()) {
         throw new HttpException('You are not authorized to revoke this message', HttpStatus.FORBIDDEN);
       }
-
-      const revokedMessage = await this.MessageModel.findByIdAndUpdate(
-        messageId,
-        {
-          isLive: false,
-          content: null,
-          mediaURL: null,
-        },
-        { new: true }
-      );
     
-      return revokedMessage;
+      
+      const updateFields = {
+        isLive: false,
+        content: null,
+        mediaURL: null,
+      };
+    
+      if (messageSource === 'MessageModel') {
+        message = await this.MessageModel.findByIdAndUpdate(messageId, updateFields, { new: true });
+      } else if (messageSource === 'GroupMessageModel') {
+        message = await this.GroupMessageModel.findByIdAndUpdate(messageId, updateFields, { new: true });
+      }
+    
+
+      return message;
     }
     
+    
 
+
+    async addMembersToGroup(
+      addMembersToGroupDto: addMembersToGroupDto,
+      groupId: Types.ObjectId,
+    ): Promise<Group> {
+      const { participants } = addMembersToGroupDto;
+    
+      // Kiểm tra xem group có tồn tại hay không
+      const group = await this.GroupModel.findById(groupId);
+      if (!group) {
+        throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
+      }
+    
+
+      const existingParticipantIds = group.participants.map((id) => id.toString());
+    
+ 
+      const newParticipantIds = participants.filter(
+        (id) => !existingParticipantIds.includes(id.toString()),
+      );
+    
+      if (newParticipantIds.length === 0) {
+        throw new HttpException(
+          'All users are already in the group',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    
+      // Thêm userId mới vào participants
+      const newParticipants = await this.UserModel.find({ _id: { $in: newParticipantIds } });
+      group.participants.push(...newParticipants);
+    
+      // Lưu group sau khi thêm
+      return await group.save();
+    }
+    
+    
+    
+    
+    
 
     
 }

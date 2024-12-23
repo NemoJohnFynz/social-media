@@ -63,9 +63,6 @@ export class OtpService {
             throw new BadRequestException('Invalid OTP.');
         }
 
-        // Xóa OTP sau khi xác thực thành công để tránh sử dụng lại
-        await this.userModel.updateOne({ email }, { otp: null, otpExpirationTime: null });
-
         return true;
     }
 }

@@ -96,21 +96,28 @@ export class PostService {
     }
 
 
-    async likePost(postId: string, userId: string): Promise<Post> {
+    async likePost(postId: string, userId: string): Promise<{ post: Post; authorId: string }> {
+        // Cập nhật bài viết và thêm userId vào danh sách likes
         const post = await this.PostModel.findByIdAndUpdate(
             postId,
             {
-                $addToSet: { likes: userId },
-                $inc: { likesCount: 1 },
+                $addToSet: { likes: userId }, // Đảm bảo không thêm trùng userId
+                $inc: { likesCount: 1 }, // Tăng số lượng likes
             },
-            { new: true },
+            { new: true }
         );
-
+    
+        // Nếu không tìm thấy bài viết, ném lỗi NotFound
         if (!post) {
             throw new NotFoundException(`Bài viết có ID "${postId}" không tồn tại`);
         }
-        return post;
+    
+        // Lấy authorId từ bài viết
+        const authorId = post.author.toString(); // Giả sử 'author' là ObjectId
+    
+        return { post, authorId };
     }
+    
 
     async unlikePost(postId: string, userId: string): Promise<Post> {
         const post = await this.PostModel.findByIdAndUpdate(
@@ -224,7 +231,7 @@ export class PostService {
                 }
             }
     
-            if (post.privacy === 'friend') {
+            if (post.privacy === 'friends') {
                 // Kiểm tra người dùng có phải là bạn của tác giả bài viết không
                 const isFriend = await this.FriendModel.exists({
                     $or: [

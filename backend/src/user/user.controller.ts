@@ -15,6 +15,7 @@ import { UploadAvatarDto } from './dto/uploadAvartar.dto';
 import { UploadCoverImgDto } from './dto/uploadCoverImg.dto';
 import { OptionalAuthGuard } from './guard/optional.guard';
 import { Types } from 'mongoose';
+import { EventService } from 'src/event/event.service';
 
 
 
@@ -23,6 +24,7 @@ export class UserController {
   constructor(
     private userService: UserService,
     private otpService: OtpService,
+    private eventService: EventService,
   ) {}
 
   @Post('register')
@@ -82,19 +84,18 @@ export class UserController {
     ){
 
       const currentUserID = new Types.ObjectId(currentUser._id.toString());
-      return this.userService.findAllUsers(currentUserID)
+      return this.userService.findAllUsers(currentUser._id.toString())
     }
 
     @Post('send-otp-resetpassword')
-    @UseGuards(AuthGuardD) // Đảm bảo người dùng đã đăng nhập
-    async sendOtp(@CurrentUser() currentUser: User) {
+    async sendOtp(
+      @Body('email') email: string,
+    ){
       try {
-        console.log('currentUser:', currentUser); // Kiểm tra toàn bộ đối tượng currentUser
-        const email = currentUser?.email;
         if (!email) {
           throw new Error("Email is required");
         }
-        await this.otpService.sendOtp(currentUser.email, 'Reset password');
+        await this.otpService.sendOtp(email, 'Reset password');
         return { message: 'OTP sent to your email.' };
       } catch (error) {
         console.error(error); // Log lỗi chi tiết
@@ -115,15 +116,14 @@ export class UserController {
     }
 
     @Post('reset-password')
-    @UseGuards(AuthGuardD) 
     async resetPassword(
-      @CurrentUser() currentUser: User, // Lấy thông tin người dùng từ currentUser
-      @Body('otp') otp: string, // Lấy OTP từ body
-      @Body() resetPasswordDto: ResetPasswordDto, // Lấy mật khẩu mới từ body
+      @Body('email') email: string,
+      @Body('otp') otp: string, 
+      @Body() resetPasswordDto: ResetPasswordDto, 
     ) {
       try {
         const message = await this.userService.resetPassword(
-          currentUser.email, 
+          email,
           otp,
           resetPasswordDto,
         );
@@ -188,7 +188,20 @@ export class UserController {
     @CurrentUser() currentUser: User,
     @Param('userId') userId: string,
   ){
-    return this.userService.FriendsRequest(currentUser._id.toString(), userId);
+    const author = {
+      _id: currentUser._id,
+      firstName: currentUser.firstName,
+      lastName: currentUser.lastName,
+      avatar: currentUser.avatar,
+    }
+    try {
+      const request = await this.userService.FriendsRequest(currentUser._id.toString(), userId);
+      this.eventService.notificationToUser(userId, 'new friend request from', author);
+      return request;
+    } catch (error) {
+      console.error('Error sending friend request:', error);
+      throw error;
+    }
   }
 
   @Post('acceptfriend/:friendRequestId')
@@ -197,7 +210,21 @@ export class UserController {
     @CurrentUser() currentUser: User,
     @Param('friendRequestId') friendRequestId: string,
   ){
-    return this.userService.acceptRequestFriends(currentUser._id.toString(), friendRequestId);
+    const author = {
+      _id: currentUser._id,
+      firstName: currentUser.firstName,
+      lastName: currentUser.lastName,
+      avatar: currentUser.avatar,
+    }
+    try {
+      const {senderId, friend} = await this.userService.acceptRequestFriends(currentUser._id.toString(), friendRequestId);
+      this.eventService.notificationToUser(senderId, 'accept friend request', author);
+      return friend;
+    } catch (error) {
+      console.error('Error sending friend request:', error);
+      throw error;
+    }
+
   }
 
   @Post('rejectFriendRequest/:friendRequestId')
@@ -223,6 +250,7 @@ export class UserController {
       @CurrentUser() currentUser: User,
       @Param('friendId') friendId: string,
     ){
+      const swageUserId = new Types.ObjectId(currentUser._id.toString())
       return this.userService.unFriend(currentUser._id.toString(), friendId);
     }
 
@@ -231,8 +259,17 @@ export class UserController {
     async getMyFriend(
       @CurrentUser() currentUser: User,
     ){
-      
+      const swageUserId = new Types.ObjectId(currentUser._id.toString())
       return this.userService.getMyFriend(currentUser._id.toString());
+    }
+
+    @Delete('removeFriendRequest/:friendRequestId')
+    @UseGuards(AuthGuardD)
+    async removeFriendRequest(
+      @CurrentUser() currentUser: User,
+      @Param('friendRequestId') friendRequestId: string,
+    ){
+      return this.userService.removeFriendRequest(currentUser._id.toString(), friendRequestId);
     }
 
     @Get('getlistfriendanother/:userId')
@@ -249,7 +286,7 @@ export class UserController {
         throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       }
       const userIdOBJ = new Types.ObjectId(userId);
-      return this.userService.getListFriendAnother(userIdOBJ);
+      return this.userService.getListFriendAnother(userId);
     } 
 
     

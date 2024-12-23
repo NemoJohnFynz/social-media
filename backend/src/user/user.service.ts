@@ -10,7 +10,8 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, ObjectId, ObjectIdToString, Types } from 'mongoose';
+import { Model, ObjectId, Types } from 'mongoose';
+import ObjectIdToString from 'mongoose';
 import { User } from './schemas/user.schemas';
 import { RegisterDto } from './dto/register.dto';
 import * as bcrypt from 'bcryptjs';
@@ -96,7 +97,7 @@ export class UserService {
       throw new HttpException('Invalid refresh token', HttpStatus.UNAUTHORIZED);
     }
 
-
+    // Xác thực refresh token bằng secret cho refresh token
     try {
       this.jwtService.verify(refreshToken, {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'), // Sử dụng secret cho refresh token từ config
@@ -211,19 +212,19 @@ export class UserService {
   async acceptRequestFriends(
     currentUserId: string,
     friendRequestId: string,
-  ): Promise<Friend> {
+  ): Promise<{ friend: Friend; senderId: string }> {
     const friendRequest = await this.FriendRequestModel.findById(friendRequestId);
-
+  
     if (!friendRequest) {
       throw new NotFoundException('No friend request found');
     }
-
+  
     const { sender, receiver } = friendRequest;
-
+  
     if (currentUserId !== receiver.toString()) {
       throw new ForbiddenException('You are not authorized to accept this friend request');
     }
-
+  
     // Kiểm tra xem hai người đã là bạn bè hay chưa
     const existingFriendship = await this.FriendModel.findOne({
       $or: [
@@ -231,23 +232,25 @@ export class UserService {
         { sender: receiver, receiver: sender },
       ],
     });
-
+  
     if (existingFriendship) {
       throw new ConflictException('You are already friends with this user.');
     }
-
+  
     // Xóa yêu cầu kết bạn
     await friendRequest.deleteOne();
-
+  
     // Tạo mối quan hệ bạn bè
     const friend = await this.FriendModel.create({
       sender,
       receiver,
       status: 'friend',
     });
-
-    return friend;
+  
+    // Trả về mối quan hệ bạn bè và ID người gửi yêu cầu
+    return { friend, senderId: sender.toString() };
   }
+  
 
 
 
@@ -271,7 +274,7 @@ export class UserService {
     return { message: 'Friend request rejected successfully' };
   }
 
-  async removeFriendRequest(currentUserId: string, friendRequestId: string,): Promise<{ message: string }> {
+  async removeFriendRequest(currentUserId: string, friendRequestId: string,): Promise<{ message: string, FriendRequest: FriendRequest }> {
     const friendRequest = await this.FriendRequestModel.findById(friendRequestId);
     if (!friendRequest) {
       throw new NotFoundException('No such friend request found');
@@ -281,29 +284,55 @@ export class UserService {
       throw new ForbiddenException('You are not authorized to delete this friend request');
     }
     await this.FriendRequestModel.findByIdAndDelete(friendRequestId);
-    return { message: 'Friend request deleted successfully' };
+    return { message: 'Friend request deleted successfully' , FriendRequest: friendRequest};
   }
 
-  async unFriend(currentUserId: string, friendId: string,): Promise<{ message: string }> {
-    await this.UserModel.findByIdAndUpdate(
-      currentUserId,
-      { $pull: { friends: friendId } },
-    );
-    await this.UserModel.findByIdAndUpdate(
-      friendId,
-      { $pull: { friends: currentUserId } },
-    );
-    return { message: 'Unfriended successfully' };
-  }
+  async unFriend(currentUserId: string, friendId: string): Promise<Friend> {
+    try {
+
+      const Friend =  await this.FriendModel.findOneAndDelete({
+            $or: [
+                { sender: currentUserId, receiver: friendId },
+                { sender: friendId, receiver: currentUserId },
+            ],
+        });
+        return Friend;
+    } catch (error) {
+        console.error('Error in unFriend:', error);
+        throw new HttpException('An error occurred while unfriending', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+
 
   async getMyFriendRequest(userId: string): Promise<FriendRequest[]> {
     return this.FriendRequestModel.find({ receiver: userId });
   }
 
+  async getMySentFriendRequest(userId: string): Promise<FriendRequest[]> {
+    return this.FriendRequestModel.find({ sender: userId });
+  }
+
+//   async getMyFriend(userId: string): Promise<any[]> {
+//     console.log('Input userId:', userId);
+
+//     const friendList = await this.FriendModel.find({
+//         $or: [
+//             { sender: userId },
+//             { receiver: userId }
+//         ],
+//         status: 'friend'
+//     }).exec(); // Bỏ populate để xem kết quả
+
+//     console.log('Raw Friend List (without populate):', friendList);
+//     return friendList;
+// }
+
+
   async getMyFriend(userId: string): Promise<Friend[]> {
-    const UserOBJ = new Types.ObjectId(userId);
-  
-    // Tìm các bạn bè mà sender hoặc receiver là userId
+    // Log dữ liệu đầu vào
+    console.log('Input userId:', userId);
+
+    // Truy vấn danh sách bạn bè
     const friendList = await this.FriendModel.find({
       $or: [
         { sender: userId },
@@ -326,10 +355,16 @@ export class UserService {
       return (friend.sender && friend.sender._id !== userId) || (friend.receiver && friend.receiver._id !== userId);
     });
   }
+
+
+
+
   
   
   
-  async getListFriendAnother(userId: Types.ObjectId): Promise<Friend[]> {
+  
+  
+  async getListFriendAnother(userId: string): Promise<Friend[]> {
     const friendList = await this.FriendModel.find({
       $or: [
         { sender: userId },
@@ -414,33 +449,84 @@ export class UserService {
   }
 
 
-  async findAllUsers(userId: Types.ObjectId): Promise<any[]> {
+  // async findAllUsers(userId: string): Promise<any[]> {
+  //   try {
+  //     // Lấy danh sách tất cả người dùng và chuyển chúng thành Plain Object (sử dụng lean)
+  //     const users = await this.UserModel.find()
+  //       .select(
+  //         '-password -isActive -refreshToken -createdAt -updatedAt -role -otp -otpExpirationTime -bookmarks -friends -coverImage',
+  //       )
+  //       .lean() 
+  //       .exec();
+  
+  //     // Lấy danh sách bạn bè của người dùng hiện tại
+  //     const friends = await this.FriendModel.find({
+  //       $or: [{ sender: userId }, { receiver: userId }],
+  //     }).exec();
+  
+  //     // Tạo danh sách ID của bạn bè
+  //     const friendIds = new Set(
+  //       friends.map((friend) => {
+  //         // So sánh các ObjectId đúng cách bằng phương thức `equals`
+  //         return friend.sender.toString() === userId.toString() ? friend.receiver.toString() : friend.sender.toString();
+  //       }),
+  //     );
+  
+  //     // Gắn trạng thái "friend" hoặc "no friend" vào từng người dùng
+  //     const updatedUsers = users.map((user) => {
+  //       const status = friendIds.has(user._id.toString()) ? 'friend' : 'no friend';
+  //       return { ...user, status }; // Không cần phải dùng toObject() nếu sử dụng lean()
+  //     });
+  
+  //     return updatedUsers;
+  //   } catch (error) {
+  //     console.error('Error fetching users:', error);
+  //     throw new HttpException('Could not retrieve users', HttpStatus.INTERNAL_SERVER_ERROR);
+  //   }
+  // }
+
+  async findAllUsers(userId: string): Promise<any[]> {
     try {
-      // Lấy danh sách tất cả người dùng và chuyển chúng thành Plain Object (sử dụng lean)
+      // Fetch user data, excluding sensitive fields
       const users = await this.UserModel.find()
-        .select(
-          '-password -isActive -refreshToken -createdAt -updatedAt -role -otp -otpExpirationTime -bookmarks -friends -coverImage',
-        )
-        .lean()  // Sử dụng lean để trả về plain object
+        .select('-password -isActive -refreshToken -createdAt -updatedAt -role -otp -otpExpirationTime -bookmarks -friends -coverImage')
+        .lean()
         .exec();
   
-      // Lấy danh sách bạn bè của người dùng hiện tại
+      // Fetch friend requests related to the current user
+      const friendRequests = await this.FriendRequestModel.find({
+        $or: [
+          { sender: userId,  }, 
+          { receiver: userId,  }, 
+        ],
+      }).exec();
+  
+      // Fetch actual friends (accepted requests)
       const friends = await this.FriendModel.find({
         $or: [{ sender: userId }, { receiver: userId }],
       }).exec();
   
-      // Tạo danh sách ID của bạn bè
-      const friendIds = new Set(
-        friends.map((friend) => {
-          // So sánh các ObjectId đúng cách bằng phương thức `equals`
-          return friend.sender.toString() === userId.toString() ? friend.receiver.toString() : friend.sender.toString();
-        }),
-      );
-  
-      // Gắn trạng thái "friend" hoặc "no friend" vào từng người dùng
+      // Process user data and assign friend statuses
       const updatedUsers = users.map((user) => {
-        const status = friendIds.has(user._id.toString()) ? 'friend' : 'no friend';
-        return { ...user, status }; // Không cần phải dùng toObject() nếu sử dụng lean()
+        let status = 'no friend';
+  
+        // Check for accepted friend relationship (highest priority)
+        if (friends.some((friend) => friend.sender.toString() === userId.toString() && friend.receiver.toString() === user._id.toString() || friend.sender.toString() === user._id.toString() && friend.receiver.toString() === userId.toString())) {
+          status = 'friend';
+        } else {
+          // Check for pending requests (sent or received)
+          const pendingRequest = friendRequests.find(
+            (request) =>
+              (request.sender.toString() === userId.toString() && request.receiver.toString() === user._id.toString() && request.status === 'waiting') ||
+              (request.receiver.toString() === userId.toString() && request.sender.toString() === user._id.toString() && request.status === 'waiting')
+          );
+  
+          if (pendingRequest) {
+            status = pendingRequest.sender.toString() === userId.toString() ? 'waiting' : 'pending'; // Differentiate sent/received
+          }
+        }
+  
+        return { ...user, status };
       });
   
       return updatedUsers;
@@ -449,11 +535,6 @@ export class UserService {
       throw new HttpException('Could not retrieve users', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  
-  
-  
-
-  
   
 
   async resetPassword(email: string, otp: string, resetPasswordDto: ResetPasswordDto): Promise<string> {
@@ -469,9 +550,11 @@ export class UserService {
       throw new BadRequestException('User not found');
     }
 
-    const hashedPassword = await bcrypt.hash(resetPasswordDto.newPassword, 10);
+    const hashedPassword = await bcrypt.hash(resetPasswordDto.newPassword, 10); 
     user.password = hashedPassword;
     await user.save();
+    // Xóa OTP sau khi xác thực thành công để tránh sử dụng lại
+    await this.UserModel.updateOne({ email }, { otp: null, otpExpirationTime: null });
 
     return 'Password reset successfully';
   }

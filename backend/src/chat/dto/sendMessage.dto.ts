@@ -7,11 +7,14 @@ export class SendMessageDto{
 
 
 
-    @ValidateIf((o) => !o.content) 
+    @ValidateIf((o) => !o.mediaURL)
+    @IsString()
+    @IsOptional()
     readonly content?: string
 
-    @ValidateIf((o) => !o.mediaURL) 
-    @IsString()
+    @ValidateIf((o) => !o.content) 
+    @IsString({ each: true })
+    @IsOptional()
     readonly mediaURL?: string;
     
 }
