@@ -46,7 +46,6 @@ export class UserController {
   @Get('current')
   @UseGuards(AuthGuardD)
   async getCurrentUser(@CurrentUser() user: any) {
-    console.log(user);
     return user; 
   }
 
@@ -55,10 +54,7 @@ export class UserController {
   @Put('update')
   @UseGuards(AuthGuardD)
   async updateUser(@CurrentUser() currentUser: User, @Body() updateData: UpdateUserDto) {
-      // Log toàn bộ currentUser để kiểm tra
-      console.log('Current User:', currentUser);
-      console.log('Current User:', User);
-  
+
       if (!currentUser) {
           throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
       }

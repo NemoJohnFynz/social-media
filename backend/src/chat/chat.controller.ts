@@ -79,7 +79,7 @@ export class ChatController {
     if (!Array.isArray(groupParticipants)) {
       throw new HttpException('Invalid group participants data', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    console.log('groupParticipants:', groupParticipants);
+    
 
 
     groupParticipants.forEach((participant) => {
@@ -87,7 +87,7 @@ export class ChatController {
       this.eventService.notificationToUser(participant._id.toString(), 'newmessage', messageSee);
 
     });
-    console.log('Saved message:', message);
+
     return message;
   }
 
@@ -146,9 +146,9 @@ export class ChatController {
     try {
       const checkTypeReceiver = userId;
       if (Types.ObjectId.isValid(userId)) {
-        console.log('receiverId is a valid ObjectId');
+
       } else {
-        console.log('receiverId is not a valid ObjectId');
+
       }
 
       const currentUserOBJ = new Types.ObjectId(currentUser._id.toString());

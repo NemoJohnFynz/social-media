@@ -32,9 +32,6 @@ export class CommentController {
       throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
     }
 
-    console.log('Current User:', currentUser);
-    console.log('Uploaded Files:', files);
-
    const { comment, authorId } = await this.commentService.create(currentUser._id.toString(), postId, commetDto, files?.files);
    const notification = {
     title: 'new comment in post',

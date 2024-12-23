@@ -75,12 +75,12 @@ export class PostService {
     
         // Nếu có ảnh mới, xử lý việc tải lên và thay thế ảnh cũ
         if (files && files.length > 0) {
-            console.log("Files received:", files);  // Kiểm tra file có được nhận không
+   
             try {
                 const uploadedImages = await Promise.all(
                     files.map(file => this.cloudinaryService.uploadFile(file))
                 );
-                post.img = uploadedImages; // Cập nhật ảnh
+                post.img = uploadedImages; 
             } catch (error) {
                 console.error('Error uploading images to Cloudinary:', error);
                 throw new HttpException('Failed to upload images', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -88,7 +88,7 @@ export class PostService {
         }
     
         const updatedPost = await post.save();
-        console.log("Updated post:", updatedPost);  // Kiểm tra kết quả
+
     
         return updatedPost;
     }

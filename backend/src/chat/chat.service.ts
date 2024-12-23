@@ -203,9 +203,6 @@ export class ChatService {
       if (!user) {
         throw new HttpException('Receiver not found', HttpStatus.NOT_FOUND);
       }
-    
-
-      
 
       const Message = new this.MessageModel({
         sender: senderId,

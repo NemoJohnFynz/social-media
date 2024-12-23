@@ -145,7 +145,7 @@ export class CommentService {
     if (!parentComment) {
       throw new NotFoundException(`Bình luận có ID "${parentCommentId}" không tồn tại`);
     }
-    console.log('cmt father',parentComment)
+
     const newReply = new this.commentModel({
       content: replyDto.content,
       author: userId,
@@ -158,7 +158,7 @@ export class CommentService {
       try {
         const uploadedImages = await Promise.all(files.map(file => this.cloudinaryService.uploadFile(file)));
         newReply.img = uploadedImages;
-        console.log('final reply',newReply)
+
       } catch (error) {
         console.error('Error uploading images to Cloudinary:', error);
         throw new HttpException('Failed to upload images', HttpStatus.INTERNAL_SERVER_ERROR);

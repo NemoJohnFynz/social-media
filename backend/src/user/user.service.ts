@@ -58,7 +58,7 @@ export class UserService {
     }
 
     const hashPassword = await bcrypt.hash(password, 10);
-    console.log(hashPassword);
+
     const user = await this.UserModel.create({
       numberPhone,
       email,
@@ -329,10 +329,7 @@ export class UserService {
 
 
   async getMyFriend(userId: string): Promise<Friend[]> {
-    // Log dữ liệu đầu vào
-    console.log('Input userId:', userId);
 
-    // Truy vấn danh sách bạn bè
     const friendList = await this.FriendModel.find({
       $or: [
         { sender: userId },

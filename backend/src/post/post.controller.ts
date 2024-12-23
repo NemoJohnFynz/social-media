@@ -29,8 +29,6 @@ export class PostController {
         if (!currentUser) {
             throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
         }
-        console.log('Current User:', currentUser);
-        console.log('Uploaded Files:', files);
 
         return this.postService.createPost(createPostDto, currentUser._id.toString(), files.files);
     }
@@ -38,7 +36,7 @@ export class PostController {
     @Get('testOptionalGuard')
     @UseGuards(OptionalAuthGuard)
     testOptionalGuard(@CurrentUser() currentUser: User) {
-        console.log('Current User:', currentUser);
+
         return currentUser;
     }
 
