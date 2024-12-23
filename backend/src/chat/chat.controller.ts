@@ -121,14 +121,15 @@ export class ChatController {
     return await this.chatService.getMylishChat(currentUserOBJ);
   }
 
-  @Delete('removeMemBerInGroup/:groupId')
+  @Put('removeMemBerInGroup/:groupId')
   @UseGuards(AuthGuardD)
   async removeMemberInGroup(
     @CurrentUser() currentUser: User,
     @Param('groupId') groupId: Types.ObjectId,
     @Body('userId') userId: Types.ObjectId,
   ) {
-    return await this.chatService.removeMemberInGroup(groupId, userId);
+    const swageUserId = new Types.ObjectId(currentUser._id.toString());
+    return await this.chatService.removeMemberInGroup(groupId, swageUserId, userId);
   }
 
   @Post('sendmessageToUser/:userId')
@@ -214,21 +215,24 @@ export class ChatController {
   async addMembersToGroup(
     @CurrentUser() currentUser: User,
     @Param('groupId') groupId: Types.ObjectId,
-    @Body('participants') addMembersToGroupDto: addMembersToGroupDto,
+    @Body() addMembersToGroupDto: addMembersToGroupDto, // Lấy toàn bộ DTO
   ) {
     try {
       if (!currentUser) {
         throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
       }
-      if (!Array.isArray(addMembersToGroupDto)) {
-        throw new HttpException('Invalid user data', HttpStatus.INTERNAL_SERVER_ERROR);
+  
+      if (!addMembersToGroupDto || !Array.isArray(addMembersToGroupDto.participants)) {
+        throw new HttpException('Invalid participants data', HttpStatus.BAD_REQUEST);
       }
+  
       return await this.chatService.addMembersToGroup(addMembersToGroupDto, groupId);
     } catch (error) {
-      console.log('error in chatcontroller /addMembersTogroup', error);
+      console.error('error in chatcontroller /addMembersTogroup', error);
+      throw error;
     }
-
   }
+  
 
 
 

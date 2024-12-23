@@ -261,6 +261,14 @@ export class UserController {
     ){
       const swageUserId = new Types.ObjectId(currentUser._id.toString())
       return this.userService.getMyFriend(currentUser._id.toString());
+    } //check
+
+    @Get('request')
+    @UseGuards(AuthGuardD)
+    async getAllMysenderFriendRequest(
+      @CurrentUser() currentUser: User,
+    ){
+      return this.userService.findAllMySenderFriendRequest(currentUser._id.toString());
     }
 
     @Delete('removeFriendRequest/:friendRequestId')

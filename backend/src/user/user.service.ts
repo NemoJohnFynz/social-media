@@ -449,41 +449,10 @@ export class UserService {
   }
 
 
-  // async findAllUsers(userId: string): Promise<any[]> {
-  //   try {
-  //     // Lấy danh sách tất cả người dùng và chuyển chúng thành Plain Object (sử dụng lean)
-  //     const users = await this.UserModel.find()
-  //       .select(
-  //         '-password -isActive -refreshToken -createdAt -updatedAt -role -otp -otpExpirationTime -bookmarks -friends -coverImage',
-  //       )
-  //       .lean() 
-  //       .exec();
-  
-  //     // Lấy danh sách bạn bè của người dùng hiện tại
-  //     const friends = await this.FriendModel.find({
-  //       $or: [{ sender: userId }, { receiver: userId }],
-  //     }).exec();
-  
-  //     // Tạo danh sách ID của bạn bè
-  //     const friendIds = new Set(
-  //       friends.map((friend) => {
-  //         // So sánh các ObjectId đúng cách bằng phương thức `equals`
-  //         return friend.sender.toString() === userId.toString() ? friend.receiver.toString() : friend.sender.toString();
-  //       }),
-  //     );
-  
-  //     // Gắn trạng thái "friend" hoặc "no friend" vào từng người dùng
-  //     const updatedUsers = users.map((user) => {
-  //       const status = friendIds.has(user._id.toString()) ? 'friend' : 'no friend';
-  //       return { ...user, status }; // Không cần phải dùng toObject() nếu sử dụng lean()
-  //     });
-  
-  //     return updatedUsers;
-  //   } catch (error) {
-  //     console.error('Error fetching users:', error);
-  //     throw new HttpException('Could not retrieve users', HttpStatus.INTERNAL_SERVER_ERROR);
-  //   }
-  // }
+  async findAllMySenderFriendRequest(userId : string): Promise<FriendRequest[]> {
+    return this.FriendRequestModel.find({ sender: userId });
+  }
+
 
   async findAllUsers(userId: string): Promise<any[]> {
     try {

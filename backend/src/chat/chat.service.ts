@@ -11,6 +11,8 @@ import { Group } from './schema/group.schema';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { RoomChat } from './schema/roomChat.schema';
 import { addMembersToGroupDto } from './dto/addMemberGroup.dto';
+import { Exception } from 'handlebars';
+import { Type } from 'class-transformer';
 
 @Injectable()
 export class ChatService {
@@ -48,7 +50,7 @@ export class ChatService {
     ): Promise<GroupMessage> {
       const { content, mediaURL } = sendMessageDto;
     
-      // Khởi tạo tin nhắn
+
       const groupMessage = new this.GroupMessageModel({
         group: groupId,
         sender: userId,
@@ -173,17 +175,17 @@ export class ChatService {
     
     
 
-    async removeMemberInGroup(groupId: Types.ObjectId, userId: Types.ObjectId): Promise<Group> {
+    async removeMemberInGroup(groupId: Types.ObjectId, Owner: Types.ObjectId, member : Types.ObjectId): Promise<Group> {
       const group = await this.GroupModel.findById(groupId);
       if (!group) {
         throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
       }
     
-      if (group.owner.toString() !== userId.toString()) {
+      if (group.owner.toString() !== Owner.toString()) {
         throw new HttpException('You are not the owner of this group', HttpStatus.UNAUTHORIZED);
       }
     
-      group.participants = group.participants.filter((id) => id.toString() !== userId.toString());
+      group.participants = group.participants.filter((id) => id.toString() !== member.toString());
       return await group.save();
     }
     
@@ -305,43 +307,50 @@ export class ChatService {
     async addMembersToGroup(
       addMembersToGroupDto: addMembersToGroupDto,
       groupId: Types.ObjectId,
+
     ): Promise<Group> {
       const { participants } = addMembersToGroupDto;
     
-      // Kiểm tra xem group có tồn tại hay không
       const group = await this.GroupModel.findById(groupId);
       if (!group) {
         throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
       }
     
-
-      const existingParticipantIds = group.participants.map((id) => id.toString());
+      const newParticipantIds = participants.map(
+        (participant) => new Types.ObjectId(participant),
+      );
     
- 
-      const newParticipantIds = participants.filter(
+      const existingParticipantIds = group.participants.map((id) =>
+        id.toString(),
+      );
+      const uniqueParticipantIds = newParticipantIds.filter(
         (id) => !existingParticipantIds.includes(id.toString()),
       );
     
-      if (newParticipantIds.length === 0) {
+      if (uniqueParticipantIds.length === 0) {
         throw new HttpException(
           'All users are already in the group',
           HttpStatus.BAD_REQUEST,
         );
       }
     
-      // Thêm userId mới vào participants
-      const newParticipants = await this.UserModel.find({ _id: { $in: newParticipantIds } });
-      group.participants.push(...newParticipants);
+      
+      group.participants.push(...(uniqueParticipantIds as any));
     
-      // Lưu group sau khi thêm
       return await group.save();
     }
     
-    
-    
-    
-    
-
+    async deleteGroup(groupId : Types.ObjectId, userId : Types.ObjectId): Promise<Group> {
+      const group = await this.GroupModel.findByIdAndDelete(groupId);
+      if (!group) {
+        throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
+      }
+      if(group.owner.toString() != userId.toString()){
+        throw new HttpException('You do not have permission to delete this group', HttpStatus.UNAUTHORIZED);
+      }
+      
+      return await this.GroupModel.findByIdAndDelete(groupId);
+    }
     
 }
 
