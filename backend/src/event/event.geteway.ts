@@ -14,7 +14,7 @@ import {
   import { Types } from 'mongoose';
 
   
-  @WebSocketGateway(3002, {
+  @WebSocketGateway({
     cors: {
       origin: "http://localhost:3000", 
       methods: ["GET", "POST"],
