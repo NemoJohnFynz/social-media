@@ -98,6 +98,7 @@ export class PostController {
         }
         
     }
+
     @Put(':id/unlike')
     @UseGuards(AuthGuardD)
     async unlikePost(@Param('id') id: string, @CurrentUser() currentUser: User) {
@@ -107,6 +108,7 @@ export class PostController {
 
         return await this.postService.unlikePost(id, currentUser._id.toString());
     }
+
     @Put(':id/dislike')
     @UseGuards(AuthGuardD)
     async dislikePost(@Param('id') id: string, @CurrentUser() currentUser: User) {
@@ -116,6 +118,7 @@ export class PostController {
 
         return await this.postService.dislikePost(id, currentUser._id.toString());
     }
+
     @Put(':id/undislike')
     @UseGuards(AuthGuardD)
     async undislikePost(@Param('id') id: string, @CurrentUser() currentUser: User) {
@@ -135,8 +138,6 @@ export class PostController {
         return this.postService.findPostCurrentUser(currentUser._id.toString())
     }
  
-
-
     @Get(':postId/privacy')
     @UseGuards(AuthGuardD)
     async findPostPrivacy(
@@ -152,7 +153,6 @@ export class PostController {
       const currentUserId = currentUser ? currentUser._id.toString() : undefined;
       return this.postService.getHomeFeed(currentUserId);
     }
-
 
     @Get('friend/:userId')
     @UseGuards(AuthGuardD)
