@@ -60,24 +60,37 @@ export class PostService {
 
     async updatePost(postId: string, updatePostDto: UpdatePostDto, userId: string, files?: Express.Multer.File[]): Promise<Post> {
         const post = await this.PostModel.findById(postId);
-
+    
         if (!post) {
             throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
         }
+    
+        // Kiểm tra quyền của người dùng
         if (post.author.toString() !== userId) {
             throw new HttpException('You are not authorized to update this post', HttpStatus.UNAUTHORIZED);
         }
+    
+        // Cập nhật nội dung bài viết
         post.content = updatePostDto.content || post.content;
+    
+        // Nếu có ảnh mới, xử lý việc tải lên và thay thế ảnh cũ
         if (files && files.length > 0) {
+            console.log("Files received:", files);  // Kiểm tra file có được nhận không
             try {
-                const uploadedImages = await Promise.all(files.map(file => this.cloudinaryService.uploadFile(file)));
-                post.img = uploadedImages; // Thay thế hình ảnh cũ
+                const uploadedImages = await Promise.all(
+                    files.map(file => this.cloudinaryService.uploadFile(file))
+                );
+                post.img = uploadedImages; // Cập nhật ảnh
             } catch (error) {
                 console.error('Error uploading images to Cloudinary:', error);
                 throw new HttpException('Failed to upload images', HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
-        return await post.save();
+    
+        const updatedPost = await post.save();
+        console.log("Updated post:", updatedPost);  // Kiểm tra kết quả
+    
+        return updatedPost;
     }
 
     async deletePost(postId: string, userId: string): Promise<{ message: string }> {
