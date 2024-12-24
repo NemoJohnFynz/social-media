@@ -353,14 +353,6 @@ export class UserService {
     });
   }
 
-
-
-
-  
-  
-  
-  
-  
   async getListFriendAnother(userId: string): Promise<Friend[]> {
     const friendList = await this.FriendModel.find({
       $or: [
@@ -611,6 +603,12 @@ export class UserService {
     return this.UserModel.findById(userId).populate('bookmarks');
   }
 
-
+  async getuserByName(name: string): Promise<User[]> {
+    return this.UserModel.find(
+      { $or: [
+        { firstName: name },
+        { lastName: name }]
+     });
+  }
 
 }

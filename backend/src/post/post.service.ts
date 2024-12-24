@@ -389,6 +389,14 @@ export class PostService {
             throw new HttpException('An error occurred while fetching posts', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    async getPostByContent(content: string): Promise<Post[]> {
+        const post = await this.PostModel.find({ content: { $regex: content } });
+        if(!post){
+            throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
+        }
+        return post;
+    }
     
     
     

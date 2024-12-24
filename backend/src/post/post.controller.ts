@@ -166,6 +166,22 @@ export class PostController {
         }
     }
 
+    @Get('getPostByContent/:content')
+    @UseGuards(AuthGuardD)
+    async getPostByContent(
+        @Param('content') content: string,
+        @CurrentUser() currentUser: User
+    ){
+        try {
+            if(!currentUser){
+                throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
+            }
+            return await this.postService.getPostByContent(content);
+        } catch (error) {
+            console.error('error in getPostByContent', error);
+        }
+    }
+
 
 }
 

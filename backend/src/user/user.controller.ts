@@ -293,7 +293,21 @@ export class UserController {
       return this.userService.getListFriendAnother(userId);
     } 
 
-    
+    @Get('getUserByName/:name')
+    @UseGuards(AuthGuardD)
+    async getUserByName(
+      @CurrentUser() currentUser: User,
+      @Param('name') name: string,
+    ){
+      try {
+        if(!currentUser){
+          throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+        }
+        return this.userService.getuserByName(name);
+      } catch (error) {
+        console.error('Error in get user by name', error);
+      }
+    }
 
 
 }

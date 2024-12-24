@@ -5,11 +5,13 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  MaxLength,
 } from 'class-validator';
 
 export class LoginDto {
   @IsString()
   @IsOptional()
+  @MaxLength(50)
   @IsEmail({}, { message: 'Invalid email format' }) // Kiểm tra định dạng email
   readonly email?: string;
 
@@ -19,5 +21,6 @@ export class LoginDto {
 
   @IsString()
   @IsNotEmpty({ message: 'Password is required' })
+  @MaxLength(50)
   readonly password: string;
 }

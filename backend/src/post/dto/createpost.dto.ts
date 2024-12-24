@@ -5,12 +5,12 @@ import { Types } from "mongoose";
 
 export class CreatePostDto{
 
-    @ValidateIf((o) => !o.content) 
+    @ValidateIf((o) => !o.img) 
     @IsOptional()
     @IsString()
     readonly content: string
 
-     @ValidateIf((o) => !o.img) 
+    @ValidateIf((o) => !o.content) 
     @IsOptional()
     @IsString()
     readonly img?:string[]
