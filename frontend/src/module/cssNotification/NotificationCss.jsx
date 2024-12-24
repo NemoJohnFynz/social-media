@@ -1,9 +1,9 @@
 function Fail() {
     return {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 1500,
         hideProgressBar: false,
-        closeOnClick: true,
+        closeOnClick: false,
         pauseOnHover: true,
         draggable: true,
         progress: undefined,
@@ -14,9 +14,9 @@ function Fail() {
 function Success() {
     return {
         position: "top-right",
-        autoClose: 3000,
+        autoClose: 1500,
         hideProgressBar: false,
-        closeOnClick: true,
+        closeOnClick: false,
         pauseOnHover: true,
         draggable: true,
         progress: undefined,

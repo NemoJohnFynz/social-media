@@ -52,39 +52,36 @@ export class ChatController {
 
     const message = await this.chatService.sendMessageToGroup(sendMessageDto, currentUserID, groupId, files?.files);
 
-
-    const currentAuthor = {
-      _id: currentUser._id,
-      firstName: currentUser.firstName,
-      lastName: currentUser.lastName,
-      avatar: currentUser.avatar,
-    };
+    // const currentAuthor = {
+    //   _id: currentUser._id,
+    //   firstName: currentUser.firstName,
+    //   lastName: currentUser.lastName,
+    //   avatar: currentUser.avatar,
+    // }; 
 
     const messageSee = {
       ...sendMessageDto,
       mediaURL: message.mediaURL,
-      author: currentAuthor,
       _id: message._id,
+      forGroup: groupId,
       sender: {
         _id: currentUser._id,
         firstName: currentUser.firstName,
         lastName: currentUser.lastName,
         avatar: currentUser.avatar
-      }
-    };
+      },
 
+    };
 
     const groupParticipants = await this.chatService.getMemberGroup(groupId);
 
     if (!Array.isArray(groupParticipants)) {
       throw new HttpException('Invalid group participants data', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-    
-
-
+  
     groupParticipants.forEach((participant) => {
 
-      this.eventService.notificationToUser(participant._id.toString(), 'newmessage', messageSee);
+      this.eventService.notificationToUser(participant._id.toString(), 'new message to group', messageSee);
 
     });
 
@@ -118,7 +115,7 @@ export class ChatController {
     @CurrentUser() currentUser: User,
   ) {
     const currentUserOBJ = new Types.ObjectId(currentUser._id.toString());
-    return await this.chatService.getMylishChat(currentUserOBJ);
+    return await this.chatService.getMylistChat(currentUserOBJ);
   }
 
   @Put('removeMemBerInGroup/:groupId')

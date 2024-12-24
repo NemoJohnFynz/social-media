@@ -86,6 +86,6 @@ export default function MyFriendCard({ userdata }) {
                 </div>
             </div>
         </div>
-        
+
     )
 }

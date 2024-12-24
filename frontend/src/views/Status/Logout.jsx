@@ -1,7 +1,7 @@
 import authToken from "../../components/authToken";
 const LogOut = ({ btnOffLogout }) => {
     function logout() {
-        authToken.deleteToken(); 
+        authToken.deleteToken();
         window.location.reload();
     }
     return (

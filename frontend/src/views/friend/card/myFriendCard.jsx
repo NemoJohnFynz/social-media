@@ -6,7 +6,7 @@ import imgUser from '../../../img/user.png'
 import friend from '../../../service/friend';
 import DropdownMyfriend from '../DropdownMyfriend'
 import { ChevronDownIcon } from '@heroicons/react/24/outline'
-
+import { ToastContainer, toast } from 'react-toastify';
 import {
     HeartIcon,
     ChatBubbleOvalLeftIcon,
@@ -14,8 +14,12 @@ import {
     UserMinusIcon
 } from '@heroicons/react/16/solid'
 import Loading from '../../../components/Loading';
+import NotificationCss from '../../../module/cssNotification/NotificationCss';
+
+
 export default function FriendCard({ iduser, idrequest }) {
     const [userdata, setUserdata] = useState({});
+    const [friendStatus, setFriendStatus] = useState(null);
     const [loading, setLoading] = useState(true); // Loading state
     useEffect(() => {
         const fetchdata = async () => {
@@ -24,7 +28,7 @@ export default function FriendCard({ iduser, idrequest }) {
                 const res = await user.getProfileUser(iduser);
                 if (res.success) {
                     setUserdata(res.data)
-                    console.log(res.data)
+                    // console.log(res.data)
                 }
             } catch (error) {
                 console.error('Error fetching user data:', error);
@@ -36,7 +40,7 @@ export default function FriendCard({ iduser, idrequest }) {
     }, [iduser]);
     if (loading) {
         return (
-           <Loading/>
+            <Loading />
         )
     }
     const handDetailUser = async (id) => {
@@ -45,9 +49,22 @@ export default function FriendCard({ iduser, idrequest }) {
     const chaneUrl = async (url) => {
         window.location.href = String(url);
     };
-
+    const handRemoveFriend = async (id) => {
+        try {
+            const rs = await friend.cancelFriend(id);
+            if (rs.success) {
+                toast.success(rs?.message ? rs.message : 'Đã hủy kết bạn', NotificationCss.Success);
+                setFriendStatus("pending");
+            } else {
+                toast.error(rs?.message ? rs.message : 'hủy kết bạn thất bại', NotificationCss.Fail);
+            }
+            toast.error(rs?.message ? rs.message : 'hủy kết bạn thất bại', NotificationCss.Fail);
+        } catch (error) {
+            toast.error('hủy kết bạn thất bại', NotificationCss.Fail);
+        }
+    };
     return (
-        <div className="border border-gray-300 shadow-2xl max-w-52 rounded-lg m-2">
+        <div className="border border-gray-300 shadow-2xl max-w-52 rounded-lg m-2 flex justify-between flex-col ">
 
             <Link onClick={() => handDetailUser(userdata?._id)}>
                 <img
@@ -69,12 +86,12 @@ export default function FriendCard({ iduser, idrequest }) {
                 </strong>
             </div>
 
-            <div className="flex flex-row gap-2 px-2 mb-2">
+            <div className="flex flex-row gap-2 px-2 mb-2 items-center">
                 <button
-                    onClick={userdata?._id ? () => chaneUrl(`/messenger/?iduser=${userdata._id}`) : undefined}
-                    className="w-full bg-gray-300 py-2 text-black rounded-lg transition-transform transform hover:scale-105"
+                    onClick={() => handDetailUser(userdata?._id)}
+                    className="w-full  bg-gray-300 py-2 text-black rounded-lg transition-transform transform hover:scale-105"
                 >
-                    Nhắn tin
+                    Xem trang cá nhân
                 </button>
                 <div className='flex justify-center items-center'>
                     <div className="dropdown">
@@ -82,28 +99,19 @@ export default function FriendCard({ iduser, idrequest }) {
                             <ChevronDownIcon className="size-4 fill-gray-500" />
                         </div>
                         <ul tabIndex={0} className="dropdown-content  menu bg-base-100  rounded-box z-[1] w-52 p-2 shadow-md shadow-gray-500">
-                            <li>
-                                <Link className="  data-[focus]:bg-[#3f3f46] p-2 rounded-md flex items-center gap-2" to="#">
-                                    <HeartIcon className="size-5 fill-red-600" />
-                                    Yêu thích
-                                </Link>
-                            </li>
+
                             <li>
                                 <Link
-                                 onClick={userdata?._id ? () => chaneUrl(`/messenger/?iduser=${userdata._id}`) : undefined}
-                                className="  data-[focus]:bg-[#3f3f46] p-2 rounded-md flex items-center gap-2" to="#">
+                                    onClick={userdata?._id ? () => chaneUrl(`/messenger/?iduser=${userdata._id}`) : undefined}
+                                    className="  data-[focus]:bg-[#3f3f46] p-2 rounded-md flex items-center gap-2" to="#">
                                     <ChatBubbleOvalLeftIcon className="size-5 fill-blue-300" />
                                     Nhắn tin
                                 </Link>
                             </li>
                             <li>
-                                <Link className="  data-[focus]:bg-[#3f3f46] p-2 rounded-md flex items-center gap-2" to="#">
-                                    <NoSymbolIcon className="size-5 fill-red-800" />
-                                    Chặn
-                                </Link>
-                            </li>
-                            <li>
-                                <Link className=" data-[focus]:bg-[#3f3f46] p-2 rounded-md flex items-center gap-2" to="#">
+                                <Link
+                                    onClick={() => userdata ? handRemoveFriend(userdata._id) : ''}
+                                    className=" data-[focus]:bg-[#3f3f46] p-2 rounded-md flex items-center gap-2">
                                     <UserMinusIcon className="size-5 fill-red-500" />
                                     Hủy kết bạn
                                 </Link>

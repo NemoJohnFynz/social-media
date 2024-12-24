@@ -18,9 +18,15 @@ import OtherPosts from "../views/profile/OtherProfiles/OtherPosts.jsx";
 import Bookmark from "../views/bookmark/page.jsx";
 import MyFriendCard from "../views/friend/card/myFriendCard.jsx";
 import MyAllFriend from "../views/friend/myAllFriend.jsx";
-import MessengerInbox from "../views/messenger/components/messInbox.jsx";
+import MessengerInbox from "../views/messenger/components/content/messInbox.jsx";
 import FriendOtherProfile from "../views/profile/OtherProfiles/FriendOtherProfile.jsx";
 import authToken from "../components/authToken.jsx";
+import MessengerGroup from "../views/messenger/components/content/messGroup.jsx";
+import Test from "./test.jsx";
+import DetailPost from "../views/post/components/DetailPost.jsx";
+import ChangePassPage from "../auth/ChangePassPage.jsx";
+import UpdatePost from "../views/post/components/UpdatePost.jsx";
+import ForgotPass from "../auth/ForgotPass.jsx";
 
 function routers() {
     return (
@@ -28,12 +34,14 @@ function routers() {
             <Routes>
                 <Route path="/" element={<Layout />}>
                     <Route index element={<Home />} />
+                    <Route path="/changepass" element={<ChangePassPage />} />
+                    <Route path="/updatepost/:id" element={<UpdatePost />} />
                     <Route path="friends" element={<Myfriend />} >
                         <Route path="" element={<Friendinvitation />} />
                         <Route path="list" element={<MyAllFriend />} />
                         <Route path="requests" element={<Friendinvitation />} />
                     </Route>
-                    <Route path="user" element={<Personal />} />
+                    <Route path="post/:id" element={<DetailPost />} />
                     <Route path="search" element={<Searchpage />} />
                     <Route path="myprofile" element={<Personal />}>
                         <Route index element={<MyPosts />} />
@@ -43,6 +51,7 @@ function routers() {
                     <Route path="messenger" element={<LayoutMessenger />}>
                         <Route index element={<MessengerInbox />} />
                         <Route path="inbox" element={<MessengerInbox />} />
+                        <Route path="group" element={<MessengerGroup />} />
                     </Route>
                     <Route path="user/:id" element={<OtherProfiles />}>
                         <Route index element={<OtherPosts />} />
@@ -56,8 +65,9 @@ function routers() {
                 </Route>
                 {/* Redirect to login if not authenticated */}
                 <Route path="/login" element={<Login />} />
+                <Route path="/test" element={<Test />} />
                 <Route path="/register" element={<Register />} />
-
+                <Route path="/forgotpass" element={<ForgotPass />} />
             </Routes>
         </BrowserRouter>
     );

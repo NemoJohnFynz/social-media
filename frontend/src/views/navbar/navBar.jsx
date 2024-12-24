@@ -7,22 +7,22 @@ import DropdownProfile from './DropdownProfile';
 import authToken from "../../components/authToken";
 import { profileUserCurrent } from '../../service/ProfilePersonal';
 import { useUser } from '../../service/UserContext';
-
+import logoweb from '../../img/logoweb.avif'
+import { ToastContainer } from 'react-toastify';
 export default function Navbar() {
+
     const { userContext, setUserContext } = useUser(); // Access user data from context
-    const [user, setUser] = useState({});
     useEffect(() => {
         const fetchData = async () => {
             const response = await profileUserCurrent(); // Assume profileUserCurrent fetches user data
             if (response && response.data) {
-                setUser(response.data)
                 setUserContext(response.data); // Update the user state in context
             } else {
                 console.warn("No data found in response.");
             }
         };
         fetchData();
-    }, [setUser]);
+    }, []);
     const location = useLocation();
     const isActiveTab = (path) => location.pathname === path;
     const isActiveString = (path) => window.location.pathname.startsWith(path);
@@ -31,7 +31,6 @@ export default function Navbar() {
         width: window.innerWidth,
         height: window.innerHeight,
     });
-
     const [chanecontainer, setChanecontainer] = useState(windowSize.width < 767)
     useEffect(() => {
         // Hàm cập nhật kích thước màn hình
@@ -108,7 +107,7 @@ export default function Navbar() {
                     </div>
                     <button className={`pl-5 pr-2 z-10 ${windowSize.width < 400 ? 'hidden' : ''}`}>
                         <Link to={"/"}>
-                            <img src="https://i.pinimg.com/564x/e3/e5/dc/e3e5dc4143d77b3dcea61776d372928c.jpg" alt=''
+                            <img src={logoweb} alt=''
                                 className="h-12 aspect-square rounded-full shadow-md flex items-center justify-center" />
                         </Link>
                     </button>
@@ -170,7 +169,7 @@ export default function Navbar() {
 
 
                     {authToken.getToken() !== null ? (
-                        <DropdownProfile user={user} />
+                        <DropdownProfile user={userContext} />
                     ) : (
                         <div className="m-1 z-10">
                             <Link to={"/login"} className='bg-[#007bff] px-3 py-3 rounded-lg'>Đăng nhập</Link>
@@ -178,6 +177,7 @@ export default function Navbar() {
                     )}
                 </div>
             </div >
+            <ToastContainer style={{ marginTop: '55px' }} />
         </>
     );
 }

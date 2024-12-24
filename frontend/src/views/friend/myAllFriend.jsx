@@ -28,7 +28,7 @@ export default function MyAllFriend() {
         };
         fetchdata();
     }, []);
-    console.log(requests)
+    // console.log(requests)
 
 
     return (

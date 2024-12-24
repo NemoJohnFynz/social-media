@@ -5,10 +5,12 @@ import { profileUserCurrent, updateInformation } from "../../../service/ProfileP
 
 const ModalUpdateProfile = () => {
     const [dataProfile, setDataProfile] = useState({})
+    const [errors, setErrors] = useState({});
     const [formData, setFormData] = useState({
         birthday: "",
         gender: "",
-        address: ""
+        address: "",
+        email: ""
     });
     const [isLoading, setIsLoading] = useState(false);
     useEffect(() => {
@@ -25,7 +27,8 @@ const ModalUpdateProfile = () => {
             setFormData({
                 birthday: dataProfile.birthday || "",
                 gender: dataProfile.gender || "",
-                address: dataProfile.address || ""
+                address: dataProfile.address || "",
+                email: dataProfile.email || ""
             });
         }
     }, [dataProfile]);
@@ -33,13 +36,57 @@ const ModalUpdateProfile = () => {
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
+        validateField(name, value);
+    };
+
+    //validate
+    const validateField = (name, value) => {
+        let newErrors = { ...errors };
+
+        switch (name) {
+            case "username":
+                if (value.length < 3) {
+                    newErrors.username = "Username must be at least 3 characters long";
+                } else {
+                    delete newErrors.username;
+                }
+                break;
+            case "email":
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(value)) {
+                    newErrors.email = "sai định dạng email";
+                } else {
+                    delete newErrors.email;
+                }
+                break;
+            case "newPassword":
+                const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/;
+                if (!passwordRegex.test(value)) {
+                    newErrors.newPassword =
+                        "Password must be at least 8 characters long and include uppercase, lowercase, numbers, and special characters";
+                } else {
+                    delete newErrors.newPassword;
+                }
+                break;
+            case "confirmNewPassword":
+                if (value !== formData.newPassword) {
+                    newErrors.confirmNewPassword = "Passwords do not match";
+                } else {
+                    delete newErrors.confirmNewPassword;
+                }
+                break;
+            default:
+                break;
+        }
+
+        setErrors(newErrors);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
             setIsLoading(true)
-            await updateInformation(formData.birthday, formData.gender, formData.address);
+            await updateInformation(formData.birthday, formData.gender, formData.address, formData.email);
             setIsLoading(false);
             alert('Cập nhật thành công');
         } catch (error) {
@@ -64,6 +111,38 @@ const ModalUpdateProfile = () => {
                         <div className="border-b border-gray-900/10 pb-12">
 
                             <div className="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                                <div className="col-span-full">
+                                    <label
+                                        htmlFor="email"
+                                        className="block text-sm font-medium text-gray-700 mb-1"
+                                    >
+                                        Email
+                                    </label>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        value={formData.email}
+                                        onChange={handleInputChange}
+                                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.email ? "border-red-500" : "border-gray-300"}`}
+                                        aria-invalid={errors.email ? "true" : "false"}
+                                        aria-describedby={errors.email ? "email-error" : undefined}
+                                        list="email-suggestions"
+                                    />
+                                    <datalist id="email-suggestions">
+                                        <option value="@gmail.com" />
+                                        <option value="@outlook.com" />
+                                        <option value="@yahoo.com" />
+                                    </datalist>
+                                    {errors.email && (
+                                        <p
+                                            id="email-error"
+                                            className="mt-1 text-sm text-red-600"
+                                            role="alert"
+                                        >
+                                            {errors.email}
+                                        </p>
+                                    )}
+                                </div>
                                 <div className="col-span-full">
                                     <label htmlFor="birthday" className="block text-sm font-medium leading-6 text-gray-900">
                                         Ngày/tháng/năm sinh
@@ -121,7 +200,7 @@ const ModalUpdateProfile = () => {
                                             value={formData.address}
                                             onChange={handleInputChange}
                                             autoComplete="street-address"
-                                            className="block w-full px-2 text-wrap rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                            className="block w-full  text-wrap rounded-md border-0 py-3 px-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
                                         />
                                     </div>
                                 </div>

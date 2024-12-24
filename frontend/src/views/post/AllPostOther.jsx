@@ -11,7 +11,7 @@ import DropdownOtherPost from './components/DropdownOtherPost';
 export default function AllPostOther({ user }) {
     const [posts, setPosts] = useState([]);
     const [userLogin, setUserLogin] = useState({})
-    const [currentIndex, setCurrentIndex] = useState(0);
+    const [currentIndexes, setCurrentIndexes] = useState({});
     const { id } = useParams();
     useEffect(() => {
         const fetchdata = async () => {
@@ -25,7 +25,7 @@ export default function AllPostOther({ user }) {
         }
         fetchdata()
     }, [id]);
-    console.log(posts)
+    // console.log(posts)
 
     if (!posts.length) {
         return <span className='text-xl mt-3 text-gray-500'>Chưa đăng bài viết nào!</span>;
@@ -109,12 +109,19 @@ export default function AllPostOther({ user }) {
 
     //carousel
     const handlePrev = (post) => {
-        setCurrentIndex((prevIndex) => (prevIndex === 0 ? post.img.length - 1 : prevIndex - 1));
+        setCurrentIndexes((prevIndexes) => ({
+            ...prevIndexes,
+            [post._id]: (prevIndexes[post._id] > 0 ? prevIndexes[post._id] : post.img.length) - 1
+        }));
     };
 
     const handleNext = (post) => {
-        setCurrentIndex((prevIndex) => (prevIndex === post.img.length - 1 ? 0 : prevIndex + 1));
+        setCurrentIndexes((prevIndexes) => ({
+            ...prevIndexes,
+            [post._id]: (prevIndexes[post._id] + 1) % post.img.length
+        }));
     };
+
     return (
         <>
             {
@@ -127,6 +134,7 @@ export default function AllPostOther({ user }) {
                             <div className='flex justify-between'>
                                 <article className='text-wrap grid gap-5'>
                                     <div className='grid'>
+
                                         <Link className='font-bold text-lg hover:link ' to="#">{user.lastName} {user.firstName}</Link>
                                         <div className='flex gap-2'>
                                             <span className='text-xs'>{formatDate(post.createdAt)}</span>
@@ -144,7 +152,7 @@ export default function AllPostOther({ user }) {
                                     )}
                                     <div className="carousel-item w-full">
                                         <img
-                                            src={post.img[currentIndex]}
+                                            src={post.img[currentIndexes[post._id] || 0]}
                                             className="w-full"
                                             alt="Post visual"
                                         />
@@ -171,10 +179,10 @@ export default function AllPostOther({ user }) {
                                         <span>{post.dislikes.length}</span>
                                     </button>
                                 </div>
-                                <button className={"flex items-end gap-1"}>
+                                <Link to={`/post/${post._id}`} className={"flex items-end gap-1"}>
                                     <ChatBubbleLeftIcon className="size-5" />
                                     <span>{post.comments.length}</span>
-                                </button>
+                                </Link>
                                 <button className={"flex items-end gap-1"}>
                                     <ShareIcon className="size-5" />
                                 </button>

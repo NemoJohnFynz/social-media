@@ -8,15 +8,17 @@ import { handleLike, handleDisLike, handleUnDisLike, handleUnLike } from '../../
 import 'animate.css';
 import DropdownPostPersonal from './components/DropdownPostPersonal';
 import { format, differenceInMinutes, differenceInHours, differenceInDays } from 'date-fns';
-
-
+import Loading from '../../components/Loading';
+import Apiuri from '../../service/apiuri';
+const uri = Apiuri.Apiuri()
 export default function PostPersonal({ user }) {
     const [posts, setPosts] = useState([]);
-
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchdata = async () => {
-            axios.get('http://localhost:3001/post/crpost', {
+            setLoading(true);
+            axios.get(`${uri}/post/crpost`, {
                 headers: {
                     Authorization: `Bearer ${authToken.getToken()}`, // Use your auth token provider
                     'Content-Type': 'application/json'
@@ -26,17 +28,15 @@ export default function PostPersonal({ user }) {
                     //sort
                     const sortedPosts = response.data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
                     setPosts(sortedPosts);
+                    setLoading(false);
                 })
+
                 .catch(error => {
                     // console.error("Error fetching post data:", error);
                 })
         }
         fetchdata()
     }, []);
-
-    if (!posts.length) {
-        return <span className="loading loading-spinner loading-lg"></span>;
-    }
     //Like
     const handleLikeClick = async (postId) => {
         try {
@@ -115,62 +115,63 @@ export default function PostPersonal({ user }) {
 
     return (
         <>
-            {
-                posts.map((post) => (
-                    <div key={post._id}
-                        className='flex items-start p-6 border border-gray-300 rounded-lg shadow-md shadow-zinc-300 gap-3'>
-                        <AVTUser user={user} />
-
-                        <div className='grid gap-2 w-full'>
-                            <div className='flex justify-between'>
-                                <article className='text-wrap grid gap-5'>
-                                    <div className='grid'>
-                                        <Link className='font-bold text-lg hover:link ' to="#">{user.lastName} {user.firstName}</Link>
-                                        <div className='flex gap-2'>
-                                            <span className='text-xs'>{formatDate(post.createdAt)}</span>
-                                            <span className='text-xs'>{formatPrivacy(post.privacy)}</span>
+            {loading ? (
+                <Loading />
+            ) : (
+                posts.length > 0 ? (
+                    posts.map((post) => (
+                        <div key={post._id}
+                            className='flex items-start p-6 border border-gray-300 rounded-lg shadow-md shadow-zinc-300 gap-3'>
+                            <AVTUser user={user} />
+                            <div className='grid gap-2 w-full'>
+                                <div className='flex justify-between'>
+                                    <article className='text-wrap grid gap-5'>
+                                        <div className='grid'>
+                                            <Link className='font-bold text-lg hover:link ' to="#">{user.lastName} {user.firstName}</Link>
+                                            <div className='flex gap-2'>
+                                                <span className='text-xs'>{formatDate(post.createdAt)}</span>
+                                                <span className='text-xs'>{formatPrivacy(post.privacy)}</span>
+                                            </div>
                                         </div>
+                                        <p>{post.content}</p>
+                                    </article>
+                                    <DropdownPostPersonal postId={post._id} />
+                                </div>
+                                {post.img.length > 0 && (
+                                    <img className='rounded-xl max-h-[300px]' src={post.img[0]} alt="Post visual" />
+                                )}
+                                <div className='flex justify-between'>
+                                    <div className='flex gap-2'>
+                                        <button onClick={() => handleLikeClick(post._id)} className={"flex items-end gap-1"}>
+                                            {post.likes.includes(user._id)
+                                                ? <HandThumbUpIcon className="size-5 animate__heartBeat" color='blue' />
+                                                : <HandThumbUpIcon className="size-5 hover:text-blue-700 " />
+                                            }
+                                            <span>{post.likes.length}</span>
+                                        </button>
+                                        <button onClick={() => handleDislikeClick(post._id)} className={"flex items-end gap-1 "}>
+                                            {post.dislikes.includes(user._id)
+                                                ? <HandThumbDownIcon className="size-5 animate__heartBeat" color='red' />
+                                                : <HandThumbDownIcon className="size-5 hover:text-red-700" />
+                                            }
+                                            <span>{post.dislikes.length}</span>
+                                        </button>
                                     </div>
-                                    <p>{post.content}</p>
-                                </article>
-                                <DropdownPostPersonal />
-                            </div>
-                            {post.img.length > 0 && (
-                                <img className='rounded-xl max-h-[300px]' src={post.img[0]} alt="Post visual" />
-                            )}
-
-                            {/* <img className='rounded-xl w-full max-h-[400px]'
-                                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRnzOw4JGD9VHLQ46a6nQS4uhdw9QFlA7s0Mg&s" alt='' /> */}
-                            <div className='flex justify-between'>
-                                <div className='flex gap-2'>
-                                    <button onClick={() => handleLikeClick(post._id)} className={"flex items-end gap-1"}>
-                                        {post.likes.includes(user._id)
-                                            ? <HandThumbUpIcon className="size-5 animate__heartBeat" color='blue' />
-                                            : <HandThumbUpIcon className="size-5 hover:text-blue-700 " />
-                                        }
-                                        <span>{post.likes.length}</span>
+                                    <button className={"flex items-end gap-1"}>
+                                        <ChatBubbleLeftIcon className="size-5" />
+                                        <span>{post.comments.length}</span>
                                     </button>
-                                    <button onClick={() => handleDislikeClick(post._id)} className={"flex items-end gap-1 "}>
-                                        {post.dislikes.includes(user._id)
-                                            ? <HandThumbDownIcon className="size-5 animate__heartBeat" color='red' />
-                                            : <HandThumbDownIcon className="size-5 hover:text-red-700" />
-                                        }
-                                        <span>{post.dislikes.length}</span>
+                                    <button className={"flex items-end gap-1"}>
+                                        <ShareIcon className="size-5" />
                                     </button>
                                 </div>
-                                <button className={"flex items-end gap-1"}>
-                                    <ChatBubbleLeftIcon className="size-5" />
-                                    <span>{post.comments.length}</span>
-                                </button>
-                                <button className={"flex items-end gap-1"}>
-                                    <ShareIcon className="size-5" />
-                                </button>
                             </div>
                         </div>
-                    </div>
-                ))
-            }
-
+                    ))
+                ) : (
+                    <span>Chưa đăng bài viết nào!</span>
+                )
+            )}
         </>
     )
 }

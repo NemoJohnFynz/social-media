@@ -5,20 +5,31 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import authToken from '../../components/authToken';
 import NotificationCss from '../../module/cssNotification/NotificationCss';
+import Apiuri from '../../service/apiuri';
+import bg from '../background_auth.jpg'
+const uri = Apiuri.Apiuri()
 
 export default function Login() {
     const [formData, setFormData] = useState({
         numberPhone: '0372830048',
         password: 'Adsads1234@#',
     });
+
     const [errors, setErrors] = useState({});
     const navigate = useNavigate();
 
-    // Form validation
     const validateForm = () => {
         const validationErrors = {};
-        if (!formData.numberPhone) validationErrors.numberPhone = 'Bắt buộc nhập số điện thoại';
-        if (!formData.password) validationErrors.password = 'Bắt buộc nhập mật khẩu';
+        const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.identifier);
+        const isPhoneNumber = /^[0-9]{10,15}$/.test(formData.identifier);
+
+        if (!formData.identifier) {
+            validationErrors.identifier = 'Vui lòng nhập email hoặc số điện thoại.';
+        } else if (!isEmail && !isPhoneNumber) {
+            validationErrors.identifier = 'Định dạng không hợp lệ. Vui lòng nhập email hoặc số điện thoại.';
+        }
+
+        if (!formData.password) validationErrors.password = 'Vui lòng nhập mật khẩu.';
         return validationErrors;
     };
 
@@ -27,17 +38,25 @@ export default function Login() {
         const validationErrors = validateForm();
         if (Object.keys(validationErrors).length === 0) {
             try {
-                const response = await axios.post('http://localhost:3001/user/login', formData);
+                const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.identifier);
+                const requestData = isEmail
+                    ? { email: formData.identifier, password: formData.password }
+                    : { numberPhone: formData.identifier, password: formData.password };
+
+                const response = await axios.post(`${uri}/user/login`, requestData);
                 if (response.status === 201) {
                     authToken.setToken(response.data.accessToken); // Save token
                     toast.success('Đăng nhập thành công! Chào mừng bạn trở lại.', NotificationCss.Success);
-                    setTimeout(() => navigate('/'), 2000); // Redirect after 3 seconds
+                    setTimeout(() => navigate('/'), 2000); // Redirect after 2 seconds
                 } else {
-                    toast.error('Đăng nhập thất bại, vui lòng thử lại!', NotificationCss.Fail);
+                    toast.error('Đăng nhập thất bại, vui lòng thử lại.', NotificationCss.Fail);
                 }
             } catch (error) {
-                console.error('Lỗi:', error.response ? error.response.data : error.message);
-                toast.error(error.response?.data?.message || 'Đăng nhập thất bại!',NotificationCss.Fail);
+                console.error('Lỗi:', error.response?.data || error.message);
+                toast.error(
+                    error.response?.data?.message || 'Đã xảy ra lỗi. Vui lòng thử lại.',
+                    NotificationCss.Fail
+                );
             }
         } else {
             setErrors(validationErrors);
@@ -53,65 +72,95 @@ export default function Login() {
     };
 
     return (
-        <div className='bg-gradient-to-r from-[#24C6DC] to-[#514A9D] h-screen grid place-items-center'>
+        <div
+            className="h-screen flex items-center justify-center"
+            style={{
+                backgroundImage: `url(${bg})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+            }}
+        >
             <form
                 onSubmit={handleSubmit}
-                method='POST'
-                className='text-black rounded-2xl bg-white px-12 py-8 min-w-[500px]'
+                className="bg-white shadow-lg shadow-gray-500 rounded-3xl p-10 w-full max-w-sm"
             >
-                <h1 className='font-bold text-3xl text-center pt-[48px]'>Đăng nhập</h1>
+                <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">Đăng nhập</h1>
 
-                <div className='mb-4 pt-[24px]'>
-                    <label htmlFor="numberPhone" className="block text-gray-700 text-sm font-bold mb-2">Tài khoản</label>
+                <div className="mb-5">
+                    <label htmlFor="identifier" className="block text-gray-600 text-sm font-medium">
+                        Email hoặc Số điện thoại
+                    </label>
                     <input
                         type="text"
-                        name="numberPhone"
-                        value={formData.numberPhone}
+                        name="identifier"
+                        value={formData.identifier}
                         onChange={handleChange}
-                        className="bg-white shadow appearance-none border rounded w-full py-4 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        placeholder="Nhập số điện thoại"
+                        className="mt-2 block w-full px-4 py-3 text-gray-700 bg-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        placeholder="Nhập email hoặc số điện thoại"
                     />
-                    {errors.numberPhone && <p style={{ color: 'red' }} className="error">{errors.numberPhone}</p>}
+                    {errors.identifier && <p className="text-red-500 text-sm mt-2">{errors.identifier}</p>}
                 </div>
 
-                <div className='mb-4'>
-                    <label htmlFor="password" className="block text-gray-700 text-sm font-bold mb-2">
+                <div className="mb-5">
+                    <label htmlFor="password" className="block text-gray-600 text-sm font-medium">
                         Mật khẩu
-                        <Link to="#" className="float-right font-normal text-gray-500 hover:text-gray-700">Quên mật khẩu?</Link>
+
                     </label>
                     <input
                         type="password"
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
-                        className="bg-white shadow appearance-none border rounded w-full py-4 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        className="mt-2 block w-full px-4 py-3 text-gray-700 bg-gray-100 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
                         placeholder="Nhập mật khẩu"
                     />
-                    {errors.password && <p style={{ color: 'red' }} className="error">{errors.password}</p>}
+                    {errors.password && <p className="text-red-500 text-sm mt-2">{errors.password}</p>}
                 </div>
+                <Link to="/forgotpass" className="float-right text-sm text-blue-500 hover:underline mb-2">
+                    Quên mật khẩu?
+                </Link>
+                <button
+                    onClick={handleSubmit}
+                    className="w-full py-3 text-white font-semibold bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg shadow-lg hover:from-blue-600 hover:to-purple-600 focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-300"
+                >
+                    Đăng nhập
+                </button>
+                <div className="flex items-center justify-between mt-3 mb-4 text-nowrap ">
+                    <label htmlFor="password" className="block text-gray-600 text-sm font-medium mr-1">
+                        <Link className="text-sm text-gray-400 hover:underline">
+                            Chưa có tài khoản?
+                        </Link>
+                    </label>
+                    <label htmlFor="password" className="block text-gray-600 text-sm font-medium">
+                        <Link to="/register" className="text-sm text-blue-500 hover:underline">
+                            Đăng ký ngay
+                        </Link>
+                    </label>
 
-                <button type="submit" className="btn btn-primary w-full mb-8">Đăng nhập</button>
-
-                <div className='flex justify-center items-center mb-2'>
-                    <div>hoặc đăng nhập bằng</div>
                 </div>
-                <div className='grid justify-center mb-4'>
-                    <div className='border-2 p-2 rounded-xl border-yellow-400 font-semibold flex items-center gap-2'>
-                        <svg xmlns="http://www.w3.org/2000/svg" height="24" width="22.875" viewBox="0 0 488 512">
-                            <path d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z" />
-                        </svg>
-                        GOOGLE
+                <div className=''>
+                    <div className="flex items-center justify-between mt-1">
+                        <div className='border-t border-gray-300 w-full'>
+                        </div>
+                        <span className="text-sm text-gray-600 px-3 text-center">hoặc</span>
+                        <div className='border-t border-gray-300 w-full'>
+                        </div>
+                    </div>
+                    <div className="flex justify-center mt-4">
+                        <button
+                            type="button"
+                            className="flex items-center gap-2 py-2 px-4 border border-yellow-400 text-yellow-500 font-semibold rounded-lg hover:bg-yellow-100"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 488 512">
+                                <path d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z" />
+                            </svg>
+                            GOOGLE
+                        </button>
                     </div>
                 </div>
-
-                <div className="flex items-center justify-between mt-4">
-                    <span className="inline-block align-baseline">Bạn chưa có tài khoản?</span>
-                    <Link to="/register" className="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
-                        Đăng ký ngay
-                    </Link>
-                </div>
             </form>
-            <ToastContainer />
-        </div>
+            <ToastContainer position="top-right" autoClose={3000} />
+        </div >
     );
 }

@@ -23,4 +23,6 @@ import { EventGeteWay } from './event.geteway';
         this.socket.server.to(`user:${userId}`).emit(event, data,);
     }
 
+    // notificationSenmessagetoGroup()
+
 }

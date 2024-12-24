@@ -16,7 +16,9 @@ export default function HomePost() {
     const [loading, setLoading] = useState(true);
     const [postsToShow, setPostsToShow] = useState(10); // Controls the number of posts to display
     const [currentIndex, setCurrentIndex] = useState(0);
-    
+    const [copied, setCopied] = useState(false);
+    const [currentIndexes, setCurrentIndexes] = useState({});
+
     useEffect(() => {
         const fetchdata = async () => {
             setLoading(true);
@@ -43,11 +45,17 @@ export default function HomePost() {
 
     // Carousel Handlers
     const handlePrev = (post) => {
-        setCurrentIndex((prevIndex) => (prevIndex === 0 ? post.img.length - 1 : prevIndex - 1));
+        setCurrentIndexes((prevIndexes) => ({
+            ...prevIndexes,
+            [post._id]: (prevIndexes[post._id] > 0 ? prevIndexes[post._id] : post.img.length) - 1
+        }));
     };
 
     const handleNext = (post) => {
-        setCurrentIndex((prevIndex) => (prevIndex === post.img.length - 1 ? 0 : prevIndex + 1));
+        setCurrentIndexes((prevIndexes) => ({
+            ...prevIndexes,
+            [post._id]: (prevIndexes[post._id] + 1) % post.img.length
+        }));
     };
 
     //Like
@@ -112,6 +120,19 @@ export default function HomePost() {
             return format(postDate, 'dd/MM/yyyy HH:mm');
         }
     };
+    //share
+    const handleCopyLink = (postId) => {
+        const link = `${window.location.href}post/${postId}`; // Lấy URL hiện tại
+        navigator.clipboard
+            .writeText(link)
+            .then(() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000); // Reset trạng thái sau 2 giây
+            })
+            .catch((err) => {
+                console.error("Không thể sao chép liên kết: ", err);
+            });
+    };
 
     const formatPrivacy = (privacy) => {
         switch (privacy) {
@@ -169,11 +190,26 @@ export default function HomePost() {
                                             </button>
                                         )}
                                         <div className="carousel-item w-full">
-                                            <img
-                                                src={post.img[currentIndex]}
-                                                className="w-full"
-                                                alt="Post visual"
-                                            />
+                                            {post.img[currentIndexes[post._id] || 0]?.endsWith('.mp4') ||
+                                                post.img[currentIndexes[post._id] || 0]?.endsWith('.webm') ||
+                                                post.img[currentIndexes[post._id] || 0]?.endsWith('.ogg') ? (
+                                                <video
+                                                    className="w-full h-full object-cover"
+                                                    controls
+                                                >
+                                                    <source
+                                                        src={post.img[currentIndexes[post._id] || 0]}
+                                                        type="video/mp4"
+                                                    />
+                                                    Your browser does not support the video tag.
+                                                </video>
+                                            ) : (
+                                                <img
+                                                    src={post.img[currentIndexes[post._id] || 0]}
+                                                    className="w-full h-full object-cover"
+                                                    alt="Post visual"
+                                                />
+                                            )}
                                         </div>
                                         {post.img.length > 1 && (
                                             <button
@@ -185,6 +221,7 @@ export default function HomePost() {
                                         )}
                                     </div>
                                 )}
+
                                 <div className="flex justify-between">
                                     <div className="flex gap-2">
                                         <button
@@ -210,12 +247,15 @@ export default function HomePost() {
                                             <span>{post.dislikes.length}</span>
                                         </button>
                                     </div>
-                                    <button className={"flex items-end gap-1"}>
+                                    <Link to={`/post/${post._id}`} className={"flex items-end gap-1"}>
                                         <ChatBubbleLeftIcon className="size-5" />
                                         <span>{post.comments.length}</span>
-                                    </button>
-                                    <button className={"flex items-end gap-1"}>
+                                    </Link>
+                                    <button
+                                        onClick={() => handleCopyLink(post._id)}
+                                        className={"flex items-end gap-1"}>
                                         <ShareIcon className="size-5" />
+
                                     </button>
                                 </div>
                             </div>

@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState } from 'react';
-
 // Create a context for user data
 const UserContext = createContext();
 

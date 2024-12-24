@@ -1,6 +1,7 @@
 import { redirect } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import Apiuri from '../../../service/apiuri';
 
 import PublicIcon from '@mui/icons-material/Public'; // MUI's "Public" icon
 import GroupIcon from '@mui/icons-material/Group'; // MUI's "Group" icon for Friends
@@ -11,6 +12,8 @@ import clsx from 'clsx';
 import authToken from '../../../components/authToken';
 import { PhotoIcon } from '@heroicons/react/24/solid'
 import { Link, useNavigate } from 'react-router-dom'
+const uri = Apiuri.Apiuri()
+
 export default function ModalStatus({ user }) {
     const navigate = useNavigate();
     const [open, setOpen] = useState(true);
@@ -19,9 +22,11 @@ export default function ModalStatus({ user }) {
     const [privacy, setPrivacy] = useState('public');
     const [showDropdown, setShowDropdown] = useState(false); // State to toggle dropdown visibility
     const [alertVisible, setAlertVisible] = useState(false);
+    const [filePreview, setFilePreview] = useState(null);
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
         content: '',
-        files: '',
+        files: null,
         privacy: privacy,
     });
     useEffect(() => {
@@ -53,6 +58,10 @@ export default function ModalStatus({ user }) {
     };
     const handleFileChange = (e) => {
         const file = e.target.files[0];
+        if (file) {
+            // setFormData((prevData) => ({ ...prevData, files: file }));
+            setFilePreview(URL.createObjectURL(file));
+        }
         setFormData({ ...formData, img: file });
     };
     const handleVisibilityChange = (newVisibility, valuePrivacy) => {
@@ -88,7 +97,8 @@ export default function ModalStatus({ user }) {
         data.append('files', formData.img || '');
         data.append('privacy', formData.privacy);
         try {
-            const response = await axios.post('http://localhost:3001/post/createPost', data,
+            setLoading(true);
+            const response = await axios.post(`${uri}/post/createPost`, data,
                 {
                     headers: {
                         Authorization: `Bearer ${authToken.getToken()}`,
@@ -99,21 +109,19 @@ export default function ModalStatus({ user }) {
 
             if (response.status === 201) {
                 setAlertVisible(true);
-                // setTimeout(() => {
-                //     setAlertVisible(false);
-                // }, 5000);
-
                 setTimeout(() => {
                     setOpen(false);
                     window.location.reload()
                 }, 1000);
-
             } else {
                 alert('Có lỗi xảy ra, vui lòng thử lại.');
+
             }
             // Xử lý thành công (ví dụ: chuyển hướng sang trang khác)
         } catch (error) {
             console.error('Lỗi:', error.response ? error.response.data : error.message);
+        } finally {
+            setLoading(false);
         }
 
     }
@@ -222,6 +230,11 @@ export default function ModalStatus({ user }) {
                             onChange={handleInputChange}
                             style={{ lineHeight: '1.5rem' }}
                         />
+                        {filePreview && (
+                            <div className="mt-4">
+                                <img src={filePreview} alt="Preview" className="max-w-full h-auto rounded-lg" />
+                            </div>
+                        )}
                         <div className="flex justify-end w-full gap-2">
                             <div className="file-input-wrapper ">
                                 <input
@@ -239,29 +252,24 @@ export default function ModalStatus({ user }) {
                                     </div>
                                 </label>
                             </div>
-                            <button>
-                                <EmojiEmotionsIcon className="" fontSize="large"
-                                // style={{
-                                //     animation: 'colorWave 1s linear infinite',
-                                //     fontWeight: 'bold',
-                                // }}
-                                />
-                            </button>
                         </div>
                     </div>
                 </div>
                 <div className="modal-action">
-                    <form method="dialog">
-                        <button className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-150">Hủy đăng bài</button>
-                    </form>
-                    <button
-                        type="submit"
+                    {loading ? <p>Loading...</p> :
+                        <div className='flex gap-3'>
+                            <form method="dialog">
+                                <button className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-150">Hủy đăng bài</button>
+                            </form>
+                            <button
+                                type="submit"
 
-                        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-150"
-                    >
-                        Đăng bài
-                    </button>
-
+                                className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-150"
+                            >
+                                Đăng bài
+                            </button>
+                        </div>
+                    }
                 </div>
             </form>
         </dialog>

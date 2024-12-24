@@ -5,6 +5,9 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 ## Available Scripts
 
 In the project directory, you can run:
+### `env support`
+REACT_APP_API_URL=http://localhost:3001
+
 
 ### `npm start`
 

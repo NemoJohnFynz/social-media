@@ -103,8 +103,9 @@ export default function FriendCard({ iduser, idrequest }) {
                         Từ chối
                     </button>
                 </div>
+                <ToastContainer style={{ marginTop: '55px' }} />
             </div>
-            <ToastContainer style={{ marginTop: '55px' }} />
+            
         </>
     )
 }

@@ -13,6 +13,7 @@ import { RoomChat } from './schema/roomChat.schema';
 import { addMembersToGroupDto } from './dto/addMemberGroup.dto';
 import { Exception } from 'handlebars';
 import { Type } from 'class-transformer';
+import { GroupWithLastMessage } from './interFace/lastmessage.interface';
 
 @Injectable()
 export class ChatService {
@@ -130,42 +131,123 @@ export class ChatService {
       }
     }
 
-    async getMylishChat(userId: string | Types.ObjectId): Promise<{ Group: Group[]; Participants: any[] }> {
+    
+    async getMylistChat(
+      userId: string | Types.ObjectId,
+    ): Promise<{ Group: any[]; Participants: any[] }> {
       const userObjectId = typeof userId === 'string' ? new Types.ObjectId(userId) : userId;
     
+      // Lấy danh sách userId mà user đã nhắn tin
       const distinctUserIds = await this.MessageModel.distinct('sender', {
-        $or: [
-          { sender: userObjectId },
-          { receiver: userObjectId },
-        ],
-      }).then(ids => ids.map(id => id.toString()));
+        $or: [{ sender: userObjectId }, { receiver: userObjectId }],
+      }).then((ids) => ids.map((id) => id.toString()));
     
-      const normalizeIds = (ids: (string | Types.ObjectId)[]) => {
-        return ids.map(id => {
-
-          if (typeof id === 'string' && Types.ObjectId.isValid(id)) {
-            return new Types.ObjectId(id);
-          }
-          return id;
-        });
-      };
-
+      // Hàm chuẩn hóa ObjectId
+      const normalizeIds = (ids: (string | Types.ObjectId)[]) =>
+        ids.map((id) => (typeof id === 'string' && Types.ObjectId.isValid(id) ? new Types.ObjectId(id) : id));
+    
       const participants = await this.UserModel.find({
-        _id: { $in: normalizeIds(distinctUserIds), $ne: userObjectId }, // Exclude the current user
-      }).select('firstName lastName avatar')
-      // .sort({createdAt : -1})
+        _id: { $in: normalizeIds(distinctUserIds), $ne: userObjectId },
+      }).select('firstName lastName avatar');
     
       // Lấy nhóm mà user tham gia
       const groups = await this.GroupModel.find({
-        participants: { $in: normalizeIds([userObjectId]) }, // Normalize userObjectId
-      }).select('name avatarGroup')
-      // .sort({createdAt : -1})
-      .exec();
+        participants: { $in: [userObjectId] },
+      })
+        .select('name avatarGroup')
+        .lean();
+    
+      // Lấy tin nhắn mới nhất giữa user và mỗi participant
+      const latestMessages = await this.MessageModel.aggregate([
+        {
+          $match: {
+            $or: [
+              { sender: userObjectId },
+              { receiver: userObjectId },
+            ],
+          },
+        },
+        {
+          $sort: { createdAt: -1 },
+        },
+        {
+          $group: {
+            _id: {
+              $cond: [
+                { $eq: ['$sender', userObjectId] },
+                '$receiver',
+                '$sender',
+              ],
+            },
+            messageId: { $first: '$_id' },
+            content: { $first: '$content' },
+            mediaURL: { $first: '$mediaURL' },
+            createdAt: { $first: '$createdAt' },
+            sender: { $first: '$sender' },
+            receiver: { $first: '$receiver' },
+          },
+        },
+      ]);
+    
+      // Lấy tin nhắn mới nhất trong từng group
+      const latestGroupMessages = await this.GroupMessageModel.aggregate([
+        {
+          $match: {
+            group: { $in: groups.map((g) => g._id) },
+          },
+        },
+        {
+          $sort: { createdAt: -1 },
+        },
+        {
+          $group: {
+            _id: '$group',
+            messageId: { $first: '$_id' },
+            content: { $first: '$content' },
+            mediaURL: { $first: '$mediaURL' },
+            createdAt: { $first: '$createdAt' },
+            sender: { $first: '$sender' },
+          },
+        },
+      ]);
+    
+      // Gắn tin nhắn mới nhất vào danh sách participants
+      const participantData = participants.map((participant) => {
+        const latestMessage = latestMessages.find(
+          (msg) => msg._id.toString() === participant._id.toString(),
+        );
+        return {
+          ...participant.toObject(),
+          latestMessage: latestMessage || null,
+        };
+      });
+    
+      // Gắn tin nhắn mới nhất vào danh sách groups
+      const groupData = groups.map((group) => {
+        const latestMessage = latestGroupMessages.find(
+          (msg) => msg._id.toString() === group._id.toString(),
+        );
+        return {
+          ...group,
+          latestMessage: latestMessage || null,
+        };
+      });
+    
+      // Sắp xếp theo thời gian nhận tin nhắn mới nhất
+      const sortedParticipants = participantData.sort(
+        (a, b) => new Date(b.latestMessage?.createdAt || 0).getTime() - new Date(a.latestMessage?.createdAt || 0).getTime(),
+      );
+    
+      const sortedGroups = groupData.sort(
+        (a, b) => new Date(b.latestMessage?.createdAt || 0).getTime() - new Date(a.latestMessage?.createdAt || 0).getTime(),
+      );
+    
       return {
-        Group: groups,
-        Participants: participants,
+        Group: sortedGroups,
+        Participants: sortedParticipants,
       };
     }
+    
     
     
     

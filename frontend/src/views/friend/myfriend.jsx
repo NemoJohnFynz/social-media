@@ -13,8 +13,8 @@ export default function Myfriend() {
         //         </div>
         //     </div>
         // </div>
-        <div className="flex row">
-            <div className="flex flex-col shadow-md shadow-slate-500 w-1/5 min-h-screen fixed items-center px-4">
+        <div className="flex row ">
+            <div className="flex flex-col shadow-md shadow-slate-500 w-1/5 min-h-screen fixed items-center px-4 ">
                 <div className="w-full border-b border-b-gray-400 py-4 text-2xl">
                     <strong>Bạn bè</strong>
                 </div>

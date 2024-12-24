@@ -3,9 +3,12 @@ import { useEffect } from 'react';
 import socket from './socket';
 
 const useWebSocket = (onMessageReceived) => {
+
   useEffect(() => {
     // Listen for 'newmessage' from the WebSocket server
+    console.log('websocket reply')
     socket.on('newmessage', (data) => {
+
       console.log('Received new message:', data);
       onMessageReceived(data); // Call the callback with the new message data
     });
