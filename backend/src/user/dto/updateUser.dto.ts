@@ -19,7 +19,6 @@ export class UpdateUserDto {
 
     @IsOptional()
     @IsBoolean()
-    
     readonly gender: string;
 
     @IsOptional()
@@ -31,4 +30,5 @@ export class UpdateUserDto {
     @IsString()
     @MaxLength(50)
     readonly email: string;
+    
 }

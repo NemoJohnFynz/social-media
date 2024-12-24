@@ -381,27 +381,31 @@ export class UserService {
 
 
 
-  async updateUser(userId: string, updateData: any): Promise<User> {
+  async updateUser(userId: string, updateData: any): Promise<any> {
     // Tìm người dùng theo ID
     const user = await this.UserModel.findById(userId);
-
+  
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
-
-    // Loại bỏ các trường không được phép cập nhật như role, isActive, refreshToken
-    const restrictedFields = ['role', 'isActive', 'refreshToken'];
-    restrictedFields.forEach(field => {
-      if (field in updateData) {
-        delete updateData[field];
+  
+    // Filter out fields with empty string values
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] === "") {
+        delete updateData[key];
       }
     });
-
-    // Cập nhật thông tin người dùng
+  
     Object.assign(user, updateData);
-
-    // Lưu thay đổi vào cơ sở dữ liệu
-    return await user.save();
+    await user.save();
+  
+    // Create an object with only the updated fields
+    const updatedFields = {};
+    Object.keys(updateData).forEach(key => {
+      updatedFields[key] = user[key];
+    });
+  
+    return updatedFields;
   }
 
   async changePassword(userId: string, changePasswordDto: ChangePasswordDto): Promise<{ message: string }> {
@@ -606,9 +610,11 @@ export class UserService {
   async getuserByName(name: string): Promise<User[]> {
     return this.UserModel.find(
       { $or: [
-        { firstName: name },
-        { lastName: name }]
-     });
+        { firstName: { $regex: name, $options: 'i' } },
+        { lastName: { $regex: name, $options: 'i' } }
+      ]
+     })
+     .select('-password -isActive -refreshToken -createdAt -updatedAt -role -otp -otpExpirationTime -bookmarks -friends -coverImage')
   }
 
 }

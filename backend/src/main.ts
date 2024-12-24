@@ -1,12 +1,19 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-
+import { ValidationPipe } from '@nestjs/common';
 import cors from 'cors'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 declare const module: any
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
 
   app.enableCors({
     origin: ['http://localhost:3000', 'https://zafacook.netlify.app'],
