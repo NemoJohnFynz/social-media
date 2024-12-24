@@ -130,12 +130,9 @@ export class ChatService {
       }
     }
 
-
-
     async getMylishChat(userId: string | Types.ObjectId): Promise<{ Group: Group[]; Participants: any[] }> {
       const userObjectId = typeof userId === 'string' ? new Types.ObjectId(userId) : userId;
     
-
       const distinctUserIds = await this.MessageModel.distinct('sender', {
         $or: [
           { sender: userObjectId },
@@ -143,7 +140,6 @@ export class ChatService {
         ],
       }).then(ids => ids.map(id => id.toString()));
     
-
       const normalizeIds = (ids: (string | Types.ObjectId)[]) => {
         return ids.map(id => {
 
@@ -153,8 +149,7 @@ export class ChatService {
           return id;
         });
       };
-    
-      // Lấy các participants (người tham gia khác với user hiện tại)
+
       const participants = await this.UserModel.find({
         _id: { $in: normalizeIds(distinctUserIds), $ne: userObjectId }, // Exclude the current user
       }).select('firstName lastName avatar')

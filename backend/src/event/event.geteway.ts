@@ -16,7 +16,7 @@ import {
   
   @WebSocketGateway({
     cors: {
-      origin: ['http://localhost:3000',' https://zafacook.netlify.app/'], 
+      origin: 'https://zafacook.netlify.app', 
       methods: ["GET", "POST"],
       allowedHeaders: ["Authorization"],
     },
