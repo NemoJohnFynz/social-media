@@ -23,6 +23,10 @@ export class OtpService {
 
       async sendOtp(email: string, purpose: 'verify-account' | 'Reset password'): Promise<void> {
         // Gọi hàm generateOtp để nhận OTP và hashedOtp
+        const user = await this.userModel.find({email: email});
+        if(!user){
+            throw new BadRequestException('Email not found');
+        }
         const { otp, hashedOtp } = this.generateOtp();
       
         // Tạo nội dung email tùy theo mục đích
