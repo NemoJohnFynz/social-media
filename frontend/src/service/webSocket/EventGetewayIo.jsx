@@ -3,9 +3,9 @@ import socket from "./socket"; // Import từ file socket.js
 
 const EventGetewayIo = () => {
   useEffect(() => {
-    // Kết nối WebSocket
+
     socket.on("connect", () => {
-      console.log("Connected to WebSocket server with ID test socket:", socket.id);
+      console.log("Connected to WebSocket server with ID test socket geteway:", socket.id);
     });
 
     // Lắng nghe sự kiện 'events'

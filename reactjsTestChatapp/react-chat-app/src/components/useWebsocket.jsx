@@ -5,9 +5,9 @@ import socket from "./socket"; // Import từ file socket.js
 const useWebSocket = (onMessageReceived) => {
   useEffect(() => {
     // Kết nối WebSocket
-    socket.on("connect", () => {
-      console.log("Connected to WebSocket server with ID:", socket.id);
-    });
+    // socket.on("connect", () => {
+    //   console.log("Connected to WebSocket server with ID:", socket.id);
+    // });
 
     // Lắng nghe sự kiện 'events'
     socket.on("events", (data) => {
@@ -15,7 +15,7 @@ const useWebSocket = (onMessageReceived) => {
     });
 
     // Lắng nghe sự kiện 'newmessage'
-    socket.on("newmessage", (data) => {
+    socket.on("newmessagetogroup", (data) => {
       console.log("Received new message:", data);
       if (onMessageReceived) {
         onMessageReceived(data); // Gọi callback khi có tin nhắn mới

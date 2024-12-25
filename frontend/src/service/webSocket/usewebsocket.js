@@ -5,8 +5,8 @@ const useWebSocket = (onMessageReceived) => {
 
   useEffect(() => {
 
-    socket.on('connect', () => {
-      console.log('WebSocket connected successfully');
+    socket.on("connect", () => {
+      console.log("Connected to WebSocket server:", socket.id);
     });
 
     // Listen for connection error
@@ -22,7 +22,7 @@ const useWebSocket = (onMessageReceived) => {
  
     socket.on('newmessage', (data) => {
       console.log('Received new message:', data);
-      onMessageReceived(data); // Call the callback with the new message data
+      onMessageReceived(data); 
     });
 
     // Cleanup on component unmount

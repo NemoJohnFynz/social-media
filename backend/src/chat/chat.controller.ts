@@ -52,13 +52,6 @@ export class ChatController {
 
     const message = await this.chatService.sendMessageToGroup(sendMessageDto, currentUserID, groupId, files?.files);
 
-    // const currentAuthor = {
-    //   _id: currentUser._id,
-    //   firstName: currentUser.firstName,
-    //   lastName: currentUser.lastName,
-    //   avatar: currentUser.avatar,
-    // }; 
-
     const messageSee = {
       ...sendMessageDto,
       mediaURL: message.mediaURL,
@@ -81,7 +74,7 @@ export class ChatController {
   
     groupParticipants.forEach((participant) => {
 
-      this.eventService.notificationToUser(participant._id.toString(), 'new message to group', messageSee);
+      this.eventService.notificationToUser(participant._id.toString(), 'newmessagetogroup', messageSee);
 
     });
 

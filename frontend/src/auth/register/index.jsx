@@ -153,6 +153,7 @@ export default function Register() {
                         required
                     />
                     <select
+                        typeof='boolean'
                         name="gender"
                         className={`bg-gray-100 shadow-inner rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none mb-4 ${!formData.gender ? 'text-gray-400' : 'text-black'}`}
                         value={formData.gender}
@@ -162,8 +163,8 @@ export default function Register() {
                         <option disabled value="" className="text-gray-400">
                             Giới tính
                         </option>
-                        <option value="true" className="text-black">Nam</option>
-                        <option value="false" className="text-black">Nữ</option>
+                        <option value= {true} className="text-black">Nam</option>
+                        <option value= {false} className="text-black">Nữ</option>
                     </select>
 
                     <input

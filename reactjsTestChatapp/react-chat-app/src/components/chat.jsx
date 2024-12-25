@@ -18,7 +18,7 @@ const GroupChat = ({ groupId, token }) => {
     try {
       // Gọi API để lấy thông tin người gửi
       const response = await axios.get(
-        `http://localhost:3001/user/${authorId}`, // API để lấy thông tin user
+        `http://localhost:3001/user/${authorId}`, 
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -68,7 +68,7 @@ const GroupChat = ({ groupId, token }) => {
   // Kết nối WebSocket khi cả groupId và token đều có giá trị
   useEffect(() => {
     if (groupId && token) {
-      const URL = "http://localhost:3002"; // Địa chỉ WebSocket server
+      const URL = "http://localhost:3001"; // Địa chỉ WebSocket server
       const socketConnection = io(URL, {
         extraHeaders: {
           Authorization: `Bearer ${token}`,
@@ -83,15 +83,14 @@ const GroupChat = ({ groupId, token }) => {
       });
 
       // Lắng nghe sự kiện nhận tin nhắn mới
-      socketConnection.on("newmessage", (data) => {
+      socketConnection.on("newmessagetogroup", (data) => {
         console.log("New message received:", data);
         onMessageReceived(data); // Cập nhật giao diện
       });
 
-      // Lưu socket để sử dụng sau
+
       setSocket(socketConnection);
 
-      // Cleanup khi component bị unmount
       return () => {
         socketConnection.disconnect();
       };

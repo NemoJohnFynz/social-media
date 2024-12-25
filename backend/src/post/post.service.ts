@@ -391,12 +391,19 @@ export class PostService {
     }
 
     async getPostByContent(content: string): Promise<Post[]> {
-        const post = await this.PostModel.find({ content: { $regex: content } });
-        if(!post){
-            throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
+        const posts = await this.PostModel.find({ content: { $regex: content, $options: 'i' } }) // Case-insensitive search
+          .populate({
+            path: 'author',
+            select: 'firstName lastName avatar'
+          })
+          .exec();
+      
+        if (!posts.length) {
+          throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
         }
-        return post;
-    }
+      
+        return posts;
+      }
     
     
     
