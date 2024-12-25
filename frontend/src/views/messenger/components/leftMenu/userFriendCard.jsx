@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import user from "../../../service/user"; // Ensure you import the correct service or API client
-import imgUser from '../../../img/user.png'
-import Loading from "../../../components/Loading";
+import user from "../../../../service/user"; // Ensure you import the correct service or API client
+import imgUser from '../../../../img/user.png'
+import Loading from "../../../../components/Loading";
 const UserFriendCard = ({ iduser }) => {
     const [userdata, setUserdata] = useState({});
     const [loading, setLoading] = useState(true);
@@ -40,14 +40,17 @@ const UserFriendCard = ({ iduser }) => {
                         : imgUser
                 }
                 alt="user" className="w-12 h-12 rounded-full mr-2 border-white border-2" />
-            <div className="text-start line-clamp-3 ">
-                <h3 className="font-semibold">
+            <div className="text-start">
+                <h3 className="font-semibold text-nowrap overflow-hidden text-ellipsis max-w-52">
                     {userdata
                         ? `${userdata.lastName || ''} ${userdata.firstName || ''}`.trim()
                         : "No Name"}
                 </h3>
+
+
                 <p className="text-gray-500 line-clamp-1">ô no không có tin xem trướcccccccccccccc</p>
             </div>
+
         </>
     );
 };

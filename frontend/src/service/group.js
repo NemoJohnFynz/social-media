@@ -4,18 +4,22 @@ import Apiuri from './apiuri';
 const url = Apiuri.Apiuri()
 
 const createGroup = async (groupName, members) => {
-    try {
-        const response = await axios.post(`${url}/chat/creategroup`, {
-            name: groupName,
-            participants: members
-        },
-            {
-                headers: { Authorization: `Bearer ${authToken.getToken()}` },
-            }
-        );
-        return { success: true, data: response.data };
-    } catch (response) {
-        return { success: false, data: response.response.data.message };
+    if (groupName.length > 20) {
+        return { success: false, data: 'Tên dài quá nhập lại đi' };
+    } else {
+        try {
+            const response = await axios.post(`${url}/chat/creategroup`, {
+                name: groupName,
+                participants: members
+            },
+                {
+                    headers: { Authorization: `Bearer ${authToken.getToken()}` },
+                }
+            );
+            return { success: true, data: response.data };
+        } catch (response) {
+            return { success: false, data: response.response.data.message };
+        }
     }
 };
 const addMemberGroup = async (idgr, listmember) => {

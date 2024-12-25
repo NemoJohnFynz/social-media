@@ -15,8 +15,6 @@ const ToolGroup = () => {
                 <PictureAndVideo />
                 <Files />
             </div>
-
-
         </div>
     );
 };

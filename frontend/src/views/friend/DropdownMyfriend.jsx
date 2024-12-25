@@ -11,7 +11,7 @@ import friend from '../../service/friend';
 import NotificationCss from '../../module/cssNotification/NotificationCss';
 import { useState } from 'react';
 
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 
 export default function DropdownMyfriend({ userdata }) {
     const [friendStatus, setFriendStatus] = useState(null);
@@ -24,11 +24,11 @@ export default function DropdownMyfriend({ userdata }) {
             const rs = await friend.cancelFriend(id);
             if (rs.success) {
                 toast.success(rs?.message ? rs.message : 'Đã hủy kết bạn', NotificationCss.Success);
-                setFriendStatus("pending");
+                setFriendStatus("pending"); 
+
             } else {
                 toast.error(rs?.message ? rs.message : 'hủy kết bạn thất bại', NotificationCss.Fail);
             }
-            toast.error(rs?.message ? rs.message : 'hủy kết bạn thất bại', NotificationCss.Fail);
         } catch (error) {
             toast.error('hủy kết bạn thất bại', NotificationCss.Fail);
         }

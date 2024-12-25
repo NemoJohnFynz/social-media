@@ -8,11 +8,13 @@ import { format, differenceInMinutes, differenceInHours, differenceInDays } from
 import { getAllOtherPosts } from '../../service/OtherProfile';
 import { profileUserCurrent } from '../../service/ProfilePersonal';
 import DropdownOtherPost from './components/DropdownOtherPost';
+import { useUser } from '../../service/UserContext';
 export default function AllPostOther({ user }) {
     const [posts, setPosts] = useState([]);
     const [userLogin, setUserLogin] = useState({})
     const [currentIndexes, setCurrentIndexes] = useState({});
     const { id } = useParams();
+    const { setShowZom } = useUser()
     useEffect(() => {
         const fetchdata = async () => {
             const response = await getAllOtherPosts(id)
@@ -107,6 +109,9 @@ export default function AllPostOther({ user }) {
     };
 
 
+    const openModal = (file) => {
+        setShowZom({ file: file, show: true });
+    };
     //carousel
     const handlePrev = (post) => {
         setCurrentIndexes((prevIndexes) => ({
@@ -135,13 +140,13 @@ export default function AllPostOther({ user }) {
                                 <article className='text-wrap grid gap-5'>
                                     <div className='grid'>
 
-                                        <Link className='font-bold text-lg hover:link ' to="#">{user.lastName} {user.firstName}</Link>
+                                        <Link className='font-bold text-lg hover:link break-words w-screen max-w-xl' to="#">{user.lastName} {user.firstName}</Link>
                                         <div className='flex gap-2'>
                                             <span className='text-xs'>{formatDate(post.createdAt)}</span>
                                             <span className='text-xs'>{formatPrivacy(post.privacy)}</span>
                                         </div>
                                     </div>
-                                    <p>{post.content}</p>
+                                    <p className='break-words w-screen max-w-xl '>{post.content}</p>
                                 </article>
                                 <DropdownOtherPost postId={post._id} />
                             </div>
@@ -151,12 +156,31 @@ export default function AllPostOther({ user }) {
                                         <button onClick={() => handlePrev(post)} className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full">‹</button>
                                     )}
                                     <div className="carousel-item w-full">
-                                        <img
-                                            src={post.img[currentIndexes[post._id] || 0]}
-                                            className="w-full"
-                                            alt="Post visual"
-                                        />
+                                        {post.img[currentIndexes[post._id] || 0].endsWith('.mp4') ? (
+                                            <video
+                                                controls
+                                                className="w-full"
+                                                alt="Post visual"
+                                                style={{ maxWidth: '100%', maxHeight: 'auto' }}
+                                            >
+                                                <source
+                                                    src={post.img[currentIndexes[post._id] || 0]}
+                                                    type="video/mp4"
+                                                />
+                                                Your browser does not support the video tag.
+                                            </video>
+                                        ) : (
+                                            <img
+                                                src={post.img[currentIndexes[post._id] || 0]}
+                                                onClick={() => {
+                                                    openModal(post.img[currentIndexes[post._id] || 0])
+                                                }}
+                                                className="w-full"
+                                                alt="Post visual"
+                                            />
+                                        )}
                                     </div>
+
                                     {post.img.length > 1 && (
                                         <button onClick={() => handleNext(post)} className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-800 text-white p-2 rounded-full">›</button>
                                     )}

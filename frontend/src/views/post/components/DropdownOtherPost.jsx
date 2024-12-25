@@ -2,13 +2,14 @@ import React from 'react'
 import { PencilSquareIcon, BookmarkIcon, EllipsisHorizontalIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { Link } from 'react-router-dom'
 import { handleAddBookmark } from '../../../service/PostService';
-
+import { toast } from 'react-toastify';
+import NotificationCss from '../../../module/cssNotification/NotificationCss';
 
 export default function DropdownOtherPost({ postId }) {
     const handleBookmarkAdd = async () => {
         try {
-            await handleAddBookmark(postId);
-            alert('Đã lưu');
+            const rs = await handleAddBookmark(postId);
+            toast.success(rs?.message ? rs.message : 'Đã lưu bài viết', NotificationCss.Success);
         } catch (error) {
             console.error('Error bookmarking post:', error);
         }

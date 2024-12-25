@@ -43,7 +43,7 @@ export default function FriendOtherProfile() {
                                     <div>
                                         <Link
                                             onClick={() => handDetailUser(e?.receiver?._id || e?.sender?._id)}
-                                            className="text-base font-semibold leading-7 tracking-tight text-gray-900 ">
+                                            className="text-base font-semibold leading-7 tracking-tight text-gray-900 z">
                                             {e?.receiver?.firstName || e?.sender?.firstName} {e?.receiver?.lastName || e?.sender?.lastName}
                                         </Link>
                                     </div>

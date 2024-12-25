@@ -92,16 +92,47 @@ const declineRequestAddFriend = async (id) => {
 };
 const checkFriend = async (id) => {
     try {
-        const response = await axios.get(`${url}/friend/status/${id}`,
-            {
-                headers: { Authorization: `Bearer ${authToken.getToken()}` },
-            }
+        // Fetch user's friend list
+        const listResponse = await axios.get(`${url}/user/getMyFriend`, {
+            headers: { Authorization: `Bearer ${authToken.getToken()}` },
+        });
+        const lisfr = listResponse.data
+        // Check if the friend's ID exists as a sender or receiver
+        const isFriend = lisfr.some(
+            (friend) =>
+                (friend.sender?._id === id || friend.receiver?._id === id) &&
+                friend.status === "friend" // Ensure status is 'friend'
         );
-        return { success: true, data: response.data };
-    } catch (response) {
-        return { success: false, data: response.response.data.message };
+        console.log(isFriend)
+
+        if (isFriend == true) {
+            // Return early if the friend is already in the list
+            return {
+                success: true,
+                data: "Friend already exists in the list.",
+                status: "friend", // Custom status indicating friendship
+            };
+        }
+
+        // If not found in the list, fetch friend status
+        const response = await axios.get(`${url}/friend/status/${id}`, {
+            headers: { Authorization: `Bearer ${authToken.getToken()}` },
+        });
+
+        return {
+            success: true,
+            data: response.data,
+            status: response.data.status,
+        };
+    } catch (error) {
+        return {
+            success: false,
+            data: error.response?.data?.message || "An error occurred",
+        };
     }
 };
+
+
 
 const cancelFriend = async (id) => {
     try {

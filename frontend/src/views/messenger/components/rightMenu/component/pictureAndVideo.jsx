@@ -1,33 +1,20 @@
 import { useContext } from "react";
 import { useState } from "react";
 import { MessengerContext } from "../../../layoutMessenger";
-import { Box, IconButton, Modal, Button } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-
+import { Button } from '@mui/material';
+import { useUser } from "../../../../../service/UserContext";
 const PictureAndVideo = () => {
     const { inboxData } = useContext(MessengerContext);
-    const [modalImage, setModalImage] = useState(null);
-    const [preview, setPreview] = useState(null);
-    const [openModal, setOpenModal] = useState(false); // Trạng thái modal
     const [visibleImagesCount, setVisibleImagesCount] = useState(6); // Số lượng ảnh hiển thị ban đầu là 6
-
+    const { setShowZom } = useUser();
     // Kiểm tra và lấy tất cả các mediaURL từ các tin nhắn
     const mediaUrls = inboxData?.messenger
         ? inboxData.messenger.flatMap(message => message.mediaURL || [])
         : [];
 
     // Hàm mở modal
-    const handleOpenModal = (img) => {
-        if (!img) {
-            setModalImage(preview); // Đặt ảnh vào modal
-        } else {
-            setModalImage(img);
-        }
-        setOpenModal(true); // Mở modal
-    };
-    // Hàm đóng modal
-    const handleCloseModal = () => {
-        setOpenModal(false); // Đóng modal
+    const openModal = (file) => {
+        setShowZom({ file: file, show: true });
     };
     // Hàm xử lý xem thêm ảnh
     const handleSeeMore = () => {
@@ -49,13 +36,15 @@ const PictureAndVideo = () => {
                                     <div
                                         key={index}
                                         className="w-24 h-24 border rounded overflow-hidden cursor-pointer transition-transform transform hover:scale-105"
-                                        onClick={() => handleOpenModal(url)} // Trigger modal on div click
+                                        onClick={() => {
+                                            openModal(url)
+                                        }}
                                     >
                                         {isVideo ? (
                                             <video
                                                 className="w-full h-full object-cover"
                                                 muted
-                                                
+
                                                 loop
                                             >
                                                 <source src={url} type="video/mp4" />
@@ -65,6 +54,8 @@ const PictureAndVideo = () => {
                                             <img
                                                 src={url}
                                                 alt={`media-${index}`}
+
+
                                                 className="w-full h-full object-cover"
                                             />
                                         )}
@@ -87,7 +78,7 @@ const PictureAndVideo = () => {
             </div>
 
             {/* Modal để hiển thị ảnh lớn */}
-            <Modal
+            {/* <Modal
                 open={openModal}
                 onClose={handleCloseModal}
                 sx={{
@@ -138,7 +129,7 @@ const PictureAndVideo = () => {
                     )}
 
                 </Box>
-            </Modal>
+            </Modal> */}
         </div>
     );
 };

@@ -14,8 +14,21 @@ import { CurrentUser } from 'src/user/decorator/currentUser.decorator';
 import { Types } from 'mongoose';
 
 @WebSocketGateway({
-  cors: {
-    origin: ['http://localhost:3000', 'https://zafacook.netlify.app'],
+
+    cors: {
+      origin: (origin, callback) => {
+        const allowedOrigins = [
+          "http://localhost:3000",
+          "https://zafacook.netlify.app"
+        ];
+  
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true); // Chấp nhận kết nối
+        } else {
+          callback(new Error("Not allowed by CORS")); // Từ chối kết nối
+        }
+      },
+      
     methods: ["GET", "POST"],
     allowedHeaders: ["Authorization"],
   },
@@ -23,7 +36,7 @@ import { Types } from 'mongoose';
 export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
-  private activeUsers = new Map<string, Set <string>>(); // clientId -> userId
+  private activeUsers = new Map<string, Set <string>>(); 
 
   constructor(
     private readonly authenticationSoket: AuththenticationSoket,

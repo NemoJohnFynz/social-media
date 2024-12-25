@@ -1,14 +1,11 @@
 import { useContext } from "react";
 import { useState } from "react";
 import { MessengerContext } from "../../../layoutMessenger";
-import { Box, IconButton, Modal, Button } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
-
+import { Button } from '@mui/material';
+import { useUser } from "../../../../../service/UserContext";
 const Files = () => {
     const { inboxData } = useContext(MessengerContext);
-    const [modalImage, setModalImage] = useState(null);
-    const [preview, setPreview] = useState(null);
-    const [openModal, setOpenModal] = useState(false); // Trạng thái modal
+    const { setShowZom } = useUser();
     const [visibleImagesCount, setVisibleImagesCount] = useState(6); // Số lượng ảnh hiển thị ban đầu là 6
 
     // Kiểm tra và lấy tất cả các mediaURL từ các tin nhắn
@@ -17,20 +14,9 @@ const Files = () => {
         : [];
 
     // Hàm mở modal
-    const handleOpenModal = (img) => {
-        if (!img) {
-            setModalImage(preview); // Đặt ảnh vào modal
-        } else {
-            setModalImage(img);
-        }
-        setOpenModal(true); // Mở modal
+    const openModal = (file) => {
+        setShowZom({ file: file, show: true });
     };
-
-    // Hàm đóng modal
-    const handleCloseModal = () => {
-        setOpenModal(false); // Đóng modal
-    };
-
     // Hàm xử lý xem thêm ảnh
     const handleSeeMore = () => {
         setVisibleImagesCount(prevCount => prevCount + 3); // Tăng số lượng ảnh hiển thị lên 3
@@ -51,13 +37,15 @@ const Files = () => {
                                     <div
                                         key={index}
                                         className="w-24 h-24 border rounded overflow-hidden cursor-pointer transition-transform transform hover:scale-105"
-                                        onClick={() => handleOpenModal(url)} // Trigger modal on div click
+                                        onClick={() => {
+                                            openModal(url)
+                                        }}
                                     >
                                         {isVideo ? (
                                             <video
                                                 className="w-full h-full object-cover"
                                                 muted
-                                                
+
                                                 loop
                                             >
                                                 <source src={url} type="video/mp4" />
@@ -87,60 +75,6 @@ const Files = () => {
                     </Button>
                 )}
             </div>
-
-            {/* Modal để hiển thị ảnh lớn */}
-            <Modal
-                open={openModal}
-                onClose={handleCloseModal}
-                sx={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                }}
-            >
-                <Box sx={{ position: 'relative', backgroundColor: 'black', padding: 0.4, borderRadius: 2 }}>
-                    <IconButton
-                        onClick={handleCloseModal}
-                        sx={{
-                            position: 'absolute',
-                            top: 4,
-                            right: 4,
-                            backgroundColor: 'rgba(255, 255, 255, 0.4)',
-                            '&:hover': { backgroundColor: 'rgba(255, 255, 255, 1)' },
-                        }}
-                    >
-                        <CloseIcon color="error" />
-                    </IconButton>
-                    {modalImage && (
-                        modalImage.endsWith(".mp4") ? (
-                            <video
-                                controls
-                                className="w-full h-full object-contain rounded"
-                                style={{
-                                    maxWidth: '90vw',
-                                    maxHeight: '90vh',
-                                }}
-                            >
-                                <source src={modalImage} type="video/mp4" />
-                                Your browser does not support the video tag.
-                            </video>
-                        ) : (
-                            <img
-                                className=""
-                                src={modalImage}
-                                alt="Modal Preview"
-                                style={{
-                                    maxWidth: '90vw',
-                                    maxHeight: '90vh',
-                                    borderRadius: '8px',
-                                }}
-                            />
-                        )
-                    )}
-
-                </Box>
-            </Modal>
         </div>
     );
 };

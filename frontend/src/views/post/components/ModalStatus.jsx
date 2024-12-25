@@ -24,6 +24,7 @@ export default function ModalStatus({ user }) {
     const [alertVisible, setAlertVisible] = useState(false);
     const [filePreview, setFilePreview] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [nodata, setNodata] = useState(false);
     const [formData, setFormData] = useState({
         content: '',
         files: null,
@@ -92,9 +93,13 @@ export default function ModalStatus({ user }) {
     //Submit 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!formData.content && !formData.files) {
+            setNodata(true);
+            return;
+        }
         const data = new FormData();
         data.append('content', formData.content || '');
-        data.append('files', formData.img || '');
+        data.append('files', formData.files || '');
         data.append('privacy', formData.privacy);
         try {
             setLoading(true);
@@ -230,9 +235,10 @@ export default function ModalStatus({ user }) {
                             onChange={handleInputChange}
                             style={{ lineHeight: '1.5rem' }}
                         />
+                        {nodata && (<div className="text-red-500">Vui lòng nhập nội dung hoặc chọn ảnh</div>)}
                         {filePreview && (
                             <div className="mt-4">
-                                <img src={filePreview} alt="Preview" className="max-w-full h-auto rounded-lg" />
+                                <img src={filePreview} alt="Preview" className="max-w-full h-32 rounded-lg" />
                             </div>
                         )}
                         <div className="flex justify-end w-full gap-2">
@@ -252,8 +258,11 @@ export default function ModalStatus({ user }) {
                                     </div>
                                 </label>
                             </div>
+
                         </div>
+
                     </div>
+
                 </div>
                 <div className="modal-action">
                     {loading ? <p>Loading...</p> :

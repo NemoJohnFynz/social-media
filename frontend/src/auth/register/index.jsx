@@ -107,6 +107,7 @@ export default function Register() {
                         name="lastName"
                         className="bg-gray-100 shadow-inner rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                         placeholder="Họ"
+                        maxLength={50}
                         value={formData.lastName}
                         onChange={handleChange}
                         required
@@ -116,6 +117,7 @@ export default function Register() {
                         name="firstName"
                         className="bg-gray-100 shadow-inner rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                         placeholder="Tên"
+                        maxLength={50}
                         value={formData.firstName}
                         onChange={handleChange}
                         required
@@ -146,6 +148,7 @@ export default function Register() {
                         className="bg-gray-100 shadow-inner rounded-lg p-3 text-gray-700 focus:ring-2 focus:ring-blue-500 focus:outline-none mb-4"
                         placeholder="Địa chỉ"
                         value={formData.address}
+                        maxLength={70}
                         onChange={handleChange}
                         required
                     />

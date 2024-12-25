@@ -38,7 +38,9 @@ export default function FriendProfile() {
                       "https://th.bing.com/th/id/OIP.PKlD9uuBX0m4S8cViqXZHAHaHa?rs=1&pid=ImgDetMain"} />
 
                   <div>
-                    <Link onClick={() => handDetailUser(e?.receiver?._id || e?.sender?._id)} className="text-base font-semibold leading-7 tracking-tight text-gray-900 ">
+                    <Link onClick={() => handDetailUser(e?.receiver?._id || e?.sender?._id)}
+
+                      className="text-base font-semibold leading-7 tracking-tight text-gray-900 ">
                       {e?.receiver?.firstName || e?.sender?.firstName} {e?.receiver?.lastName || e?.sender?.lastName}
                     </Link>
                   </div>

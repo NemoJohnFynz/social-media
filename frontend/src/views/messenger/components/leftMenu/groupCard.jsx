@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
-import user from "../../../service/user"; // Ensure you import the correct service or API client
-import imgUser from '../../../img/user.png'
-import Loading from "../../../components/Loading";
+import user from "../../../../service/user"; // Ensure you import the correct service or API client
+import imgUser from '../../../../img/user.png'
+import Loading from "../../../../components/Loading";
 const GroupCard = ({ group }) => {
     const [groupdata, setGroupdata] = useState({});
     const [loading, setLoading] = useState(true);
@@ -41,7 +41,7 @@ const GroupCard = ({ group }) => {
                 }
                 alt="user" className="w-12 h-12 rounded-full mr-2 border-white border-2" />
             <div className="text-start line-clamp-3 ">
-                <h3 className="font-semibold">
+                <h3 className="font-semibold text-nowrap overflow-hidden text-ellipsis max-w-52">
                    { group.name?group.name : "No Name"}
                 </h3>
                 

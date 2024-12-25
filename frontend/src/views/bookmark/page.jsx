@@ -4,7 +4,8 @@ import { getAllBookmark, getHomeFeed, handleRemoveBookmark } from '../../service
 import { profileUserCurrent } from '../../service/ProfilePersonal'
 import Loading from '../../components/Loading'
 import { Link } from 'react-router-dom'
-
+import { toast } from 'react-toastify'
+import NotificationCss from '../../module/cssNotification/NotificationCss'
 export default function Bookmark() {
     const [data, setData] = useState([])
     const [loading, setLoading] = useState(true);
@@ -33,9 +34,9 @@ export default function Bookmark() {
 
     const handleBookmarkClick = async (postId) => {
         try {
-            await handleRemoveBookmark(postId);
+            const rs = await handleRemoveBookmark(postId);
             setData(prevData => prevData.filter(post => post._id !== postId));
-            alert('Đã bỏ lưu');
+            toast.success(rs?.message ? rs.message : 'Bỏ lưu bài viết thành công', NotificationCss.Success);
         } catch (error) {
             console.error('Error bookmarking post:', error);
         }
@@ -57,7 +58,7 @@ export default function Bookmark() {
                         data.map((post, index) => (
                             <div key={index} className="card bg-base-100 w-[400px] shadow-xl border-[1px]">
                                 <div className="card-body">
-                                    <h2 className="card-title">{post.content}</h2>
+                                    <h2 className="card-title">{post.content ? post.content : "không có nội dung"}</h2>
                                     <img
                                         className='rounded-sm'
                                         style={{ width: '100%', height: '200px', objectFit: 'cover' }}

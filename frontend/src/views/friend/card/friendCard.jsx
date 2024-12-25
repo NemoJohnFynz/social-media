@@ -80,12 +80,13 @@ export default function FriendCard({ iduser, idrequest }) {
                     />
                 </Link>
 
-                <div className="p-2 text-center">
-                    <strong>
+                <div className="p-2 text-center ">
+                    <strong className='font-semibold text-nowrap overflow-hidden text-ellipsis max-w-52'>
                         {userdata
-                            ? `${userdata.firstName || ''} ${userdata.lastName || ''}`.trim()
+                            ? `${(userdata.firstName || '').slice(0, 10)} ${(userdata.lastName || '').slice(0, 10)}`
                             : "No Name"}
                     </strong>
+
                 </div>
 
                 <div className="flex flex-col gap-2 px-2 mb-2">
@@ -105,7 +106,7 @@ export default function FriendCard({ iduser, idrequest }) {
                 </div>
                 <ToastContainer style={{ marginTop: '55px' }} />
             </div>
-            
+
         </>
     )
 }

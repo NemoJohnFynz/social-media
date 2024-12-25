@@ -21,6 +21,7 @@ export default function FriendCard({ iduser, idrequest }) {
     const [userdata, setUserdata] = useState({});
     const [friendStatus, setFriendStatus] = useState(null);
     const [loading, setLoading] = useState(true); // Loading state
+    const [friends, setFriends] = useState(userdata.friends); // Assuming userdata contains a list of friends
     useEffect(() => {
         const fetchdata = async () => {
 
@@ -55,10 +56,11 @@ export default function FriendCard({ iduser, idrequest }) {
             if (rs.success) {
                 toast.success(rs?.message ? rs.message : 'Đã hủy kết bạn', NotificationCss.Success);
                 setFriendStatus("pending");
+                setFriends(friends.filter(friend => friend.id !== id)); // Update the friends list
             } else {
                 toast.error(rs?.message ? rs.message : 'hủy kết bạn thất bại', NotificationCss.Fail);
             }
-            toast.error(rs?.message ? rs.message : 'hủy kết bạn thất bại', NotificationCss.Fail);
+
         } catch (error) {
             toast.error('hủy kết bạn thất bại', NotificationCss.Fail);
         }
@@ -81,9 +83,10 @@ export default function FriendCard({ iduser, idrequest }) {
             <div className="p-2 text-center">
                 <strong>
                     {userdata
-                        ? `${userdata.lastName || ''} ${userdata.firstName || ''}`.trim()
+                        ? `${(userdata.lastName || '').slice(0, 10)} ${(userdata.firstName || '').slice(0, 10)}`
                         : "No Name"}
                 </strong>
+
             </div>
 
             <div className="flex flex-row gap-2 px-2 mb-2 items-center">

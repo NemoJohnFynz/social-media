@@ -110,6 +110,7 @@ export default function ChangePassPage({ btnCancel }) {
                             name="currentPassword"
                             value={formData.currentPassword}
                             onChange={handleInputChange}
+                            required
                             placeholder="Nhập mật khẩu hiện tại"
                             className="w-full px-4 py-3 mt-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                         />
@@ -124,6 +125,7 @@ export default function ChangePassPage({ btnCancel }) {
                             name="newPassword"
                             value={formData.newPassword}
                             onChange={handleInputChange}
+                            required
                             placeholder="Nhập mật khẩu mới"
                             className="w-full px-4 py-3 mt-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                         />
@@ -138,6 +140,7 @@ export default function ChangePassPage({ btnCancel }) {
                             name="confirmNewPassword"
                             value={formData.confirmNewPassword}
                             onChange={handleInputChange}
+                            required
                             placeholder="Nhập lại mật khẩu mới"
                             className="w-full px-4 py-3 mt-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                         />

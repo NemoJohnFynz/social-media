@@ -9,7 +9,7 @@ import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import friend from '../../../../service/friend';
 import Loading from '../../../../components/Loading';
-import UserFriendCard from '../userFriendCard';
+import UserFriendCard from './userFriendCard';
 import CardFriendAddGroup from '../rightMenu/component/cardFriendAddGroup';
 import group from '../../../../service/group';
 import { useNavigate } from "react-router-dom";

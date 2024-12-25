@@ -38,14 +38,19 @@ export default function Login() {
         const validationErrors = validateForm();
         if (Object.keys(validationErrors).length === 0) {
             try {
+                // Determine if the identifier is an email or phone number
                 const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.identifier);
+
+                // Dynamically construct the request payload
                 const requestData = isEmail
                     ? { email: formData.identifier, password: formData.password }
                     : { numberPhone: formData.identifier, password: formData.password };
 
+                // Send login request
                 const response = await axios.post(`${uri}/user/login`, requestData);
+
                 if (response.status === 201) {
-                    authToken.setToken(response.data.accessToken); // Save token
+                    authToken.setToken(response.data.accessToken); // Save the token
                     toast.success('Đăng nhập thành công! Chào mừng bạn trở lại.', NotificationCss.Success);
                     setTimeout(() => navigate('/'), 2000); // Redirect after 2 seconds
                 } else {

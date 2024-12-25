@@ -20,7 +20,7 @@ const LeftMessenger = () => {
         switch (content) {
             case "inbox":
                 setContent("inbox")
-                return <AllInbox />;
+                return <AllFriend />;
             case "group":
                 setContent("group")
                 return <AllGroup />;
@@ -32,7 +32,7 @@ const LeftMessenger = () => {
         }
     };
     return (
-        <div className="h-full flex flex-col border-r-gray-300 border-r ">
+        <div className="h-full flex flex-col border-r-gray-300 border-r">
             <div className=" min-w-80 h-full">
                 <div className="flex flex-col h-full">
                     <div className="w-full flex justify-center relative">

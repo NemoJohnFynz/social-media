@@ -1,11 +1,11 @@
 import friend from "../../../../service/friend";
-import UserFriendCard from "../userFriendCard";
+import UserFriendCard from "./userFriendCard";
 import Loading from "../../../../components/Loading";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MagnifyingGlassIcon } from '@heroicons/react/24/solid';
 import group from "../../../../service/group";
-import GroupCard from "../groupCard";
+import GroupCard from "./groupCard";
 import { UserGroupIcon, PlusIcon } from '@heroicons/react/24/solid';
 import ModalAddGroup from "./modalAddGroup";
 

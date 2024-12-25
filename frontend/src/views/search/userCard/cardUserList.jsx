@@ -5,14 +5,17 @@ import { ToastContainer, toast } from 'react-toastify';
 import NotificationCss from '../../../module/cssNotification/NotificationCss'
 import { useContext } from 'react';
 import { useUser } from '../../../service/UserContext';
+import Loading from '../../../components/Loading';
 const CardUserList = ({ userdata: initialUserData }) => {
     const { userContext } = useUser();
     const [userdata, setUserdata] = useState(initialUserData);
+    const [seding, setSending] = useState(true)
     // WebSocket message handler
 
 
     // Add friend functionality
     const handAddFriend = useCallback(async (id) => {
+        setSending(false)
         try {
             const rs = await friend.AddFriend(id);
             console.log(rs.message);
@@ -26,8 +29,10 @@ const CardUserList = ({ userdata: initialUserData }) => {
         } catch (error) {
             console.error(error);
         }
+        setSending(true)
     }, []); // Add empty array to ensure it's only created once
     const handCloseFriend = async (id) => {
+        setSending(false)
         try {
             const rs = await friend.cancelFriend(id);
             if (rs.success) {
@@ -39,12 +44,14 @@ const CardUserList = ({ userdata: initialUserData }) => {
         } catch (error) {
             console.error(error);
         }
+        setSending(true)
     };
 
     const handCancelRequest = async (id) => {
+        setSending(false)
         try {
             const rs = await friend.cancelFriendRequest(id);
-            if (rs.success) {
+            if (rs) {
                 setUserdata((prev) => ({ ...prev, status: 'no friend' }));
                 toast.success(rs?.message || 'Đã hủy yêu cầu kết bạn', NotificationCss.Success);
             } else {
@@ -53,12 +60,13 @@ const CardUserList = ({ userdata: initialUserData }) => {
         } catch (error) {
             console.error(error);
         }
+        setSending(true)
     };
 
     const handDetailUser = (id) => {
         window.location.href = `/user/${id}`;
     };
-    
+
     return (
         <>
             <button
@@ -70,10 +78,11 @@ const CardUserList = ({ userdata: initialUserData }) => {
                         <img
                             className="w-14 h-14 rounded-full"
                             src={userdata.avatar || userImg}
+                            alt=''
                         />
                     </div>
                     <div className="flex flex-col pl-2">
-                        <div className="text-start">
+                        <div className="text-start font-semibold text-nowrap overflow-hidden text-ellipsis max-w-52">
                             {userdata.firstName || ''} {userdata.lastName || ''}
                         </div>
                         <div>number post</div>
@@ -81,36 +90,44 @@ const CardUserList = ({ userdata: initialUserData }) => {
                     </div>
                 </div>
                 <div className="py-5">
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            if (userdata._id && userdata.status) {
-                                switch (userdata.status) {
-                                    case 'no friend':
-                                        handAddFriend(userdata._id);
-                                        break;
-                                    case 'friend':
-                                        handCloseFriend(userdata._id);
-                                        break;
-                                    default:
-                                        handCancelRequest(userdata._id);
-                                        break;
-                                }
-                            }
-                        }}
-                        className={`rounded-xl p-2 min-w-24 shadow-sm shadow-gray-300 ${userdata.status === 'friend'
-                            ? 'hover:text-red-600 text-red-500 hover:bg-red-200 bg-red-100'
-                            : 'hover:text-blue-600 text-blue-500 hover:bg-blue-200 bg-blue-100'
-                            }`}
-                    >
-                        <strong className="text-sm">
-                            {userdata.status === 'no friend'
-                                ? 'Add Friend'
-                                : userdata.status === 'friend'
-                                    ? 'Cancel Friend'
-                                    : 'Cancel Request'}
-                        </strong>
-                    </button>
+                    {
+                        seding == true ?
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (userdata._id && userdata.status) {
+                                        switch (userdata.status) {
+                                            case 'no friend':
+                                                handAddFriend(userdata._id);
+                                                break;
+                                            case 'friend':
+                                                handCloseFriend(userdata._id);
+                                                break;
+                                            default:
+                                                handCancelRequest(userdata._id);
+                                                break;
+                                        }
+                                    }
+                                }}
+                                className={`rounded-xl p-2 min-w-24 shadow-sm shadow-gray-300 ${userdata.status === 'friend'
+                                    ? 'hover:text-red-600 text-red-500 hover:bg-red-200 bg-red-100'
+                                    : 'hover:text-blue-600 text-blue-500 hover:bg-blue-200 bg-blue-100'
+                                    }`}
+                            >
+                                <strong className="text-sm">
+                                    {userdata.status === 'no friend'
+                                        ? 'Add Friend'
+                                        : userdata.status === 'friend'
+                                            ? 'Cancel Friend'
+                                            : 'Cancel Request'}
+                                </strong>
+                            </button>
+
+                            :
+                            <Loading />
+
+                    }
+
                 </div>
             </button>
 

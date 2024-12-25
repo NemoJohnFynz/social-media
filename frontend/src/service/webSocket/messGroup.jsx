@@ -249,7 +249,7 @@ const MessengerInbox = () => {
 
                                     </div>
                                     {
-                                        groupedMessages[date].length == index + 1 ? <div ref={messagesEndRef} /> : ''
+                                        groupedMessages[date].length === index + 1 ? <div ref={messagesEndRef} /> : ''
                                     }
                                 </React.Fragment>
                             ))}

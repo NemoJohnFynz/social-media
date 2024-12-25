@@ -29,7 +29,7 @@ export default function HeadProfile() {
                 <div>
                     <img className='rounded-full h-40 w-40 ' alt=''
                         src={`${dataProfile && dataProfile.avatar ? dataProfile.avatar : "https://th.bing.com/th/id/OIP.PKlD9uuBX0m4S8cViqXZHAHaHa?rs=1&pid=ImgDetMain"}`} />
-                    <h1 className='font-bold text-2xl mt-3'>{dataProfile && dataProfile.lastName} {dataProfile && dataProfile.firstName}</h1>
+                    <h1 className='font-bold text-2xl mt-3 '>{dataProfile && dataProfile.lastName} {dataProfile && dataProfile.firstName}</h1>
                 </div>
                 <button className="" onClick={() => document.getElementById('my_modal_2').showModal()}><PencilIcon className='size-4 fill-sky-800' /></button>
                 <ModalUpdateAVT user={dataProfile} />

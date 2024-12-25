@@ -28,7 +28,7 @@ export default function About() {
         fetchdata()
     }, [])
     return (
-        <div className='w-full py-4 px-10 bg-gradient-to-r from-[#dbd3d3] to-[#b6a8a8] rounded-lg border-[1px] shadow-lg border-[#000000]'>
+        <div className='w-full py-4 px-10 bg-gradient-to-r from-[#ebf4f5] to-[#b5c6e0] rounded-lg border-[1px] shadow-lg '>
             <div className="px-4 sm:px-0 flex justify-between">
                 <h3 className="text-2xl font-semibold leading-7">Thông tin cá nhân</h3>
                 <button

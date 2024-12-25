@@ -127,13 +127,13 @@ export default function PostPersonal({ user }) {
                                 <div className='flex justify-between'>
                                     <article className='text-wrap grid gap-5'>
                                         <div className='grid'>
-                                            <Link className='font-bold text-lg hover:link ' to="#">{user.lastName} {user.firstName}</Link>
+                                            <Link className='font-bold text-lg hover:link break-words w-screen max-w-xl' to="#">{user.lastName} {user.firstName}</Link>
                                             <div className='flex gap-2'>
                                                 <span className='text-xs'>{formatDate(post.createdAt)}</span>
                                                 <span className='text-xs'>{formatPrivacy(post.privacy)}</span>
                                             </div>
                                         </div>
-                                        <p>{post.content}</p>
+                                        <p className='break-words w-screen max-w-xl'>{post.content}</p>
                                     </article>
                                     <DropdownPostPersonal postId={post._id} />
                                 </div>
@@ -157,10 +157,10 @@ export default function PostPersonal({ user }) {
                                             <span>{post.dislikes.length}</span>
                                         </button>
                                     </div>
-                                    <button className={"flex items-end gap-1"}>
+                                    <Link to={`/post/${post._id}`} className={"flex items-end gap-1"}>
                                         <ChatBubbleLeftIcon className="size-5" />
                                         <span>{post.comments.length}</span>
-                                    </button>
+                                    </Link>
                                     <button className={"flex items-end gap-1"}>
                                         <ShareIcon className="size-5" />
                                     </button>

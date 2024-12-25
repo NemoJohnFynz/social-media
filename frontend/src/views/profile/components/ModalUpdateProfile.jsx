@@ -63,14 +63,14 @@ const ModalUpdateProfile = () => {
                 const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*]).{8,}$/;
                 if (!passwordRegex.test(value)) {
                     newErrors.newPassword =
-                        "Password must be at least 8 characters long and include uppercase, lowercase, numbers, and special characters";
+                        "Mật khẩu phải có ít nhất 8 ký tự và bao gồm chữ in hoa, chữ thường, số và ký tự đặc biệt.";
                 } else {
                     delete newErrors.newPassword;
                 }
                 break;
             case "confirmNewPassword":
                 if (value !== formData.newPassword) {
-                    newErrors.confirmNewPassword = "Passwords do not match";
+                    newErrors.confirmNewPassword = "Không khớp với mật khẩu mới";
                 } else {
                     delete newErrors.confirmNewPassword;
                 }

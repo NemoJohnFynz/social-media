@@ -27,6 +27,7 @@ import DetailPost from "../views/post/components/DetailPost.jsx";
 import ChangePassPage from "../auth/ChangePassPage.jsx";
 import UpdatePost from "../views/post/components/UpdatePost.jsx";
 import ForgotPass from "../auth/ForgotPass.jsx";
+import PostSearch from "../views/search/postSearch.jsx";
 
 function routers() {
     return (
@@ -51,6 +52,7 @@ function routers() {
                     <Route path="messenger" element={<LayoutMessenger />}>
                         <Route index element={<MessengerInbox />} />
                         <Route path="inbox" element={<MessengerInbox />} />
+                        <Route path="friend" element={<MessengerInbox />} />
                         <Route path="group" element={<MessengerGroup />} />
                     </Route>
                     <Route path="user/:id" element={<OtherProfiles />}>
@@ -59,8 +61,10 @@ function routers() {
                         <Route path="friends" element={<FriendOtherProfile />} />
                     </Route>
                     <Route path="bookmark" element={<Bookmark />} />
+
                     <Route path="/search" element={<LayoutSearch />}>
                         <Route path="all" element={<Searchpage />} />
+                        <Route path="content" element={<PostSearch />} />
                     </Route>
                 </Route>
                 {/* Redirect to login if not authenticated */}
