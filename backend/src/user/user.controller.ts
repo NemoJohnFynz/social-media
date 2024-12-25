@@ -303,7 +303,7 @@ export class UserController {
         if(!currentUser){
           throw new HttpException('User not found', HttpStatus.NOT_FOUND);
         }
-        return this.userService.getuserByName(name);
+        return this.userService.getuserByName(name, currentUser._id.toString());
       } catch (error) {
         console.error('Error in get user by name', error);
       }
