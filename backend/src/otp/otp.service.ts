@@ -43,7 +43,7 @@ export class OtpService {
           { email },
           { otp: hashedOtp, otpExpirationTime }
         );
-        console.log('OTP sent and saved successfully!');
+
       }
 
       async verifyOtp(email: string, otp: string): Promise<boolean> {

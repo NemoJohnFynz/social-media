@@ -44,14 +44,14 @@ export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatew
   }
 
   async handleConnection(client: Socket) {
-    console.log('New connection: ', client.id);
+
   
     try {
       const user = await this.authenticationSoket.authenticate(client);
       if (!user) {
         throw new WsException('Unauthorized');
       }
-      console.log('Connection Origin:', client.handshake.headers.origin);
+
       const userId = user._id.toString();
   
 
@@ -65,11 +65,6 @@ export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatew
       // Ensure client joins a room matching notification format (e.g., user:userId)
       client.join(`user:${userId}`);
   
-      console.log(`User ${user.firstName} ${user.lastName} connected with client ID ${client.id}`);
-      console.log(
-        'Active users:',
-        Array.from(this.activeUsers.entries()).map(([uid, clients]) => [uid, Array.from(clients)]),
-      );
     } catch (error) {
       console.error('Error during connection:', error);
       client.disconnect();
@@ -77,7 +72,7 @@ export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatew
   }
 
   handleDisconnect(client: Socket) {
-    console.log('Disconnected client:', client.id);
+
   
     // Tìm userId mà client thuộc về
     const userId = Array.from(this.activeUsers.entries()).find(([_, clientIds]) =>
@@ -97,13 +92,10 @@ export class EventGeteWay implements OnGatewayInit, OnGatewayConnection, OnGatew
         }
       }
   
-      console.log(`Client ${client.id} disconnected from user ${userId}`);
+
     }
   
-    console.log(
-      'Remaining active users:',
-      Array.from(this.activeUsers.entries()).map(([uid, clients]) => [uid, Array.from(clients)]),
-    );
+
   }
   
   

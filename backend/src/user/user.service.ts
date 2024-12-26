@@ -298,7 +298,7 @@ export class UserService {
         });
         return Friend;
     } catch (error) {
-        console.error('Error in unFriend:', error);
+
         throw new HttpException('An error occurred while unfriending', HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
@@ -493,7 +493,7 @@ export class UserService {
   
       return updatedUsers;
     } catch (error) {
-      console.error('Error fetching users:', error);
+
       throw new HttpException('Could not retrieve users', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
@@ -547,7 +547,7 @@ export class UserService {
       user.coverImage = uploadedImage; // Cập nhật avatar cho người dùng
        // Cập nhật public ID của ảnh
     } catch (error) {
-      console.error('Error uploading image to Cloudinary:', error);
+
       throw new HttpException('Failed to upload image', HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -575,7 +575,7 @@ export class UserService {
       const uploadedImage = await this.cloudinaryService.uploadFile(files[0]);
       user.avatar = uploadedImage;
     } catch (error) {
-      console.error('Error uploading image to Cloudinary:', error);
+
       throw new HttpException('Failed to upload image', HttpStatus.INTERNAL_SERVER_ERROR);
     }
     return await user.save();
@@ -661,7 +661,7 @@ export class UserService {
   
       return updatedUsers;
     } catch (error) {
-      console.error('Error fetching users by name:', error);
+    
       throw new HttpException('Could not retrieve users', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

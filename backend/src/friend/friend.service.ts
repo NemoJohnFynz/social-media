@@ -12,7 +12,7 @@ export class FriendService {
 
     // Add a new friend request
     async addFriendRequest(requesterId: string, recipientId: string): Promise<FriendRequest> {
-        console.log('Request Data:', { requesterId, recipientId });
+
     
         if (requesterId === recipientId) {
             throw new HttpException('You cannot send a friend request to yourself', HttpStatus.BAD_REQUEST);
@@ -39,7 +39,7 @@ export class FriendService {
             status: 'pending',  // Initial status
         });
     
-        console.log('New Friend Request Created:', newRequest);
+
     
         // Save the friend request to the database
         return newRequest.save();
@@ -48,7 +48,7 @@ export class FriendService {
     
     // Accept a friend request
     async acceptFriendRequest(requestId: string, userId: string): Promise<FriendRequest> {
-        console.log(requestId)
+      
         const request = await this.friendRequestModel.findById(requestId);
 
         if (!request) {

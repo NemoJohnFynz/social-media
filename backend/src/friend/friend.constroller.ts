@@ -14,7 +14,7 @@ export class FriendController {
         @Param('idFriend') idFriend: string,
         @CurrentUser() currentUser: User
     ) {
-        console.log(currentUser._id.toString(), idFriend)
+
         if (!currentUser) {
             throw new HttpException('User not authenticated', HttpStatus.UNAUTHORIZED);
         }

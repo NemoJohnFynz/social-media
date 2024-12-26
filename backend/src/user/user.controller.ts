@@ -94,7 +94,7 @@ export class UserController {
         await this.otpService.sendOtp(email, 'Reset password');
         return { message: 'OTP sent to your email.' };
       } catch (error) {
-        console.error(error); // Log lỗi chi tiết
+
         throw new BadRequestException(error.message);
       }
     }
@@ -195,7 +195,7 @@ export class UserController {
       this.eventService.notificationToUser(userId, 'new friend request from', author);
       return request;
     } catch (error) {
-      console.error('Error sending friend request:', error);
+
       throw error;
     }
   }
@@ -217,7 +217,7 @@ export class UserController {
       this.eventService.notificationToUser(senderId, 'accept friend request', author);
       return friend;
     } catch (error) {
-      console.error('Error sending friend request:', error);
+
       throw error;
     }
 
@@ -305,7 +305,7 @@ export class UserController {
         }
         return this.userService.getuserByName(name, currentUser._id.toString());
       } catch (error) {
-        console.error('Error in get user by name', error);
+        throw error;
       }
     }
 

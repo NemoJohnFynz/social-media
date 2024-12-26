@@ -31,7 +31,7 @@ export class OptionalAuthGuard implements CanActivate {
       request.currentUser = payload;
       return true;
     } catch (error) {
-      console.error('OptionalAuthGuard - Token verification failed:', error);
+
       throw new UnauthorizedException('Invalid or expired token');
     }
   }

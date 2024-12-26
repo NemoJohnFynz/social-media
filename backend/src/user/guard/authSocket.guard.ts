@@ -43,7 +43,7 @@ export class AuththenticationSoket {
 
       return user;
     } catch (error) {
-      console.error('Error in authentication:', error);
+     
       throw new WsException('Invalid or expired token');
     }
   }

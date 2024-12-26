@@ -38,7 +38,7 @@ export class PostService {
                 const uploadedImages = await Promise.all(files.map(file => this.cloudinaryService.uploadFile(file)));
                 newPost.img = uploadedImages;
             } catch (error) {
-                console.error('Error uploading images to Cloudinary:', error);
+
                 throw new HttpException('Failed to upload images', HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
@@ -82,7 +82,7 @@ export class PostService {
                 );
                 post.img = uploadedImages; 
             } catch (error) {
-                console.error('Error uploading images to Cloudinary:', error);
+                
                 throw new HttpException('Failed to upload images', HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
@@ -202,7 +202,7 @@ export class PostService {
             return await post.save();
         } catch (error) {
             // Bắt lỗi và ném lại lỗi dưới dạng HttpException nếu có lỗi
-            console.error('Error updating post privacy:', error);
+           
             throw new HttpException(
                 error.message || 'An error occurred while updating post privacy',
                 error.status || HttpStatus.INTERNAL_SERVER_ERROR,
@@ -217,7 +217,7 @@ export class PostService {
                 .exec();
             return userPosts
         } catch (error) {
-            console.error('errol', error)
+            
             throw new HttpException('Could not retrieve posts', HttpStatus.INTERNAL_SERVER_ERROR)
         }
     }
@@ -311,7 +311,7 @@ export class PostService {
             // Lọc bỏ những bài viết null (không có quyền truy cập)
             return filteredPosts.filter((post) => post !== null);
         } catch (error) {
-            console.error('Error getting posts by user:', error);
+            
             throw new HttpException('An error occurred while fetching posts async getpostbyuser', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -385,7 +385,7 @@ export class PostService {
     
             return scoredPosts;
         } catch (error) {
-            console.error('Error in getHomeFeed:', error);
+
             throw new HttpException('An error occurred while fetching posts', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

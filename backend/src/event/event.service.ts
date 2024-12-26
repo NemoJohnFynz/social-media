@@ -19,11 +19,11 @@ import { EventGeteWay } from './event.geteway';
     }
 
     notificationToUser(userId: string, event: string, data: any) {
-        console.log(`Notifying user ${userId} with event ${event} and data:`, data);
+       
         const clients = this.socket.server.sockets.adapter.rooms.get(`user:${userId}`);
         
         if (clients && clients.size > 0) {
-            console.log(`Clients receiving the event: ${Array.from(clients).join(', ')}`);
+            
             this.socket.server.to(`user:${userId}`).emit(event, data);
         } else {
             console.log(`No clients found for user ${userId}`);

@@ -47,7 +47,7 @@ export class AuthGuardD implements CanActivate {
         request.currentUser = user;
         //console.log('User set in request:', request.currentUser); // Log để kiểm tra
     } catch (error) {
-        console.error('Error in AuthGuardD:', error);
+        
         if (error instanceof TokenExpiredError) {
             throw new ForbiddenException('Token has expired, please log in again');
         }
