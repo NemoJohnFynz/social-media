@@ -224,18 +224,19 @@ export class PostService {
 
     async findPostPrivacy(postId: string, userId: string): Promise<Post> {
         try {
+            const userIDOBJ = new Types.ObjectId(userId);
             // Truy vấn bài đăng
             const post = await this.PostModel.findById(postId);
-    
+        
             if (!post) {
                 throw new HttpException('The post does not exist', HttpStatus.NOT_FOUND);
             }
-    
+        
             // Kiểm tra quyền truy cập của bài đăng
             if (post.privacy === 'public') {
                 return post;  // Bài viết công khai có thể xem
             }
-    
+        
             if (post.privacy === 'private') {
                 if (post.author.toString() === userId) {
                     return post;  // Chỉ người tạo bài viết có thể xem
@@ -243,30 +244,41 @@ export class PostService {
                     throw new HttpException('You are not authorized to view this post', HttpStatus.UNAUTHORIZED);
                 }
             }
-    
+        
             if (post.privacy === 'friends') {
-                // Kiểm tra người dùng có phải là bạn của tác giả bài viết không
+                // Kiểm tra người dùng có phải là bạn của tác giả bài viết không hoặc là chính tác giả
+                if (post.author.toString() === userId) {
+                    return post;  // Tác giả có thể xem bài viết của chính họ
+                }
+    
                 const isFriend = await this.FriendModel.exists({
                     $or: [
                         { sender: userId, receiver: post.author.toString() },
                         { sender: post.author.toString(), receiver: userId }
                     ],
                 });
-    
+        
                 if (isFriend) {
                     return post;  // Nếu là bạn, trả về bài viết
                 } else {
                     throw new HttpException('You are not friends with the author', HttpStatus.UNAUTHORIZED);
                 }
             }
-            
-            // Nếu bài viết có privacy không hợp lệ
+    
+            if (post.privacy === 'specific') {
+                // Kiểm tra người dùng có trong danh sách allowedUsers không
+                if (post.allowedUsers.includes(userIDOBJ)) {
+                    return post;  // Người dùng được phép xem bài viết
+                } else {
+                    throw new HttpException('You are not authorized to view this post', HttpStatus.UNAUTHORIZED);
+                }
+            }
+        
             throw new HttpException('Invalid post privacy setting', HttpStatus.BAD_REQUEST);
         } catch (error) {
             throw error;
         }
     }
-    
 
     async getPostsByUser(userId: string, currentUserId?: string): Promise<Post[]> {
         try {
