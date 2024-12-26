@@ -415,15 +415,17 @@ export class ChatService {
     }
     
     async deleteGroup(groupId : Types.ObjectId, userId : Types.ObjectId): Promise<Group> {
-      const group = await this.GroupModel.findByIdAndDelete(groupId);
+      const group = await this.GroupModel.findById(groupId);
       if (!group) {
         throw new HttpException('Group not found', HttpStatus.NOT_FOUND);
       }
       if(group.owner.toString() != userId.toString()){
         throw new HttpException('You do not have permission to delete this group', HttpStatus.UNAUTHORIZED);
       }
-      
-      return await this.GroupModel.findByIdAndDelete(groupId);
+
+      await this.GroupMessageModel.deleteMany({ group: groupId });
+      await this.GroupModel.findByIdAndDelete(groupId);
+      return group;
     }
     
 }

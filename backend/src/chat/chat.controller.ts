@@ -230,7 +230,23 @@ export class ChatController {
   }
 
   
-  
+  @Delete('deleteGroup/:groupId')
+  @UseGuards(AuthGuardD)
+  async deleteGroup(
+    @CurrentUser() currentUser: User,
+    @Param('groupId') groupId: Types.ObjectId,
+  ) {
+    try {
+      if (!currentUser) {
+        throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
+      }
+      const swageUserId = new Types.ObjectId(currentUser._id.toString());
+      return await this.chatService.deleteGroup(groupId,swageUserId);
+    } catch (error) {
+      console.error('error in chatcontroller /deleteGroup', error);
+      throw error;
+    }
+  }
 
 
 
