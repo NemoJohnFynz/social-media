@@ -7,6 +7,7 @@ import { CurrentUser } from '../user/decorator/currentUser.decorator';
 import { User } from '../user/schemas/user.schemas';
 import { OptionalAuthGuard } from '../user/guard/optional.guard';
 import { EventService } from 'src/event/event.service';
+import { settingPrivacyDto } from './dto/settingPrivacy.dto';
 
 @Controller('post')
 export class PostController {
@@ -144,6 +145,21 @@ export class PostController {
     ) {
         return this.postService.findPostPrivacy(postId, currentUser._id.toString());
     }
+
+    @Put('settingprivacy/:postId')
+    @UseGuards(AuthGuardD)
+    async settingPrivacy(
+        @CurrentUser() currentUser: User,
+        @Param('postId') postId: string,
+        @Body() settingPrivacyDto: settingPrivacyDto
+    ) {
+        if(!currentUser){
+            throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
+        }
+        
+        return this.postService.settingPrivacy(postId, settingPrivacyDto, currentUser._id.toString());
+    }
+    
 
     @Get('getHomeFeed')
     @UseGuards(AuthGuardD)
