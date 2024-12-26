@@ -293,46 +293,50 @@ export class PostService {
                 posts.map(async (post) => {
                     const postAuthorObjectId = new Types.ObjectId(post.author); // Chuyển sang ObjectId nếu cần
     
+                    // Chế độ công khai
                     if (post.privacy === 'public') {
-                        return post; // Công khai, ai cũng xem được
+                        return post;
                     }
     
+                    // Chế độ riêng tư
                     if (post.privacy === 'private') {
                         if (postAuthorObjectId.equals(currentUserObjectId)) {
-                            return post; // Chỉ tác giả mới được xem
+                            return post; // Chỉ tác giả mới xem được
                         }
-                        return null; // Không đủ quyền
+                        return null;
                     }
     
+                    // Chế độ bạn bè
                     if (post.privacy === 'friends') {
-                        // Kiểm tra người dùng hiện tại và tác giả có phải bạn bè không
-                        if (postAuthorObjectId.equals(userId)) {
-                            return post; // Tác giả luôn xem được bài viết của chính họ
+                        // Tác giả có thể xem bài viết của chính họ
+                        if (postAuthorObjectId.equals(currentUserObjectId)) {
+                            return post;
                         }
     
+                        // Kiểm tra nếu người dùng hiện tại và tác giả là bạn bè
                         const isFriend = await this.FriendModel.exists({
                             $or: [
-                                { sender: currentUserObjectId, receiver: postAuthorObjectId },
-                                { sender: postAuthorObjectId, receiver: currentUserObjectId },
+                                { sender: currentUserObjectId?.toString(), receiver: postAuthorObjectId.toString() },
+                                { sender: postAuthorObjectId.toString(), receiver: currentUserObjectId?.toString() },
                             ],
                         });
     
                         if (isFriend) {
-                            return post; // Bạn bè được phép xem
+                            return post;
                         }
-                        return null; // Không đủ quyền
+                        return null;
                     }
     
+                    // Chế độ cụ thể
                     if (post.privacy === 'specific') {
-                        // Kiểm tra người dùng có nằm trong danh sách allowedUsers không
                         if (
                             post.allowedUsers.some((id) =>
-                                id.equals(currentUserObjectId)
+                                id.toString() === currentUserObjectId?.toString()
                             )
                         ) {
-                            return post; // Người dùng được chỉ định có thể xem
+                            return post; // Người dùng được phép xem
                         }
-                        return null; // Không đủ quyền
+                        return null;
                     }
     
                     return null; // Mặc định loại bỏ nếu không xác định được quyền riêng tư
@@ -355,16 +359,7 @@ export class PostService {
 
     async getHomeFeed(userId: string): Promise<PostF[]> {
         try {
-            //tìm bản thân trong danh sách userModel(mục đích xem bản thân có tồn tại không)
-            //ok logic là thế này: 
-
-            //đầu tiên lấy toàn bộ bài viết
-            //sau đó bắt đầu lọc với điều kiện 
-            //1 bài viết đó phải là public, nếu là privacy thì bản thân(_id) phải có trong mảng allower user
-            //còn nếu đó là friend thì xem bản thân và author có phải friend không nếu có thì lấy không thì lấy not
-            //sau đó trừ toàn bộ bài viết có privacy là private
-            //sau đó tính điểm cho từng bài viết rồi sort
-            // Tìm người dùng và populate danh sách bạn bè
+            // Tìm người dùng và kiểm tra xem người dùng có tồn tại không
             const user = await this.UserModel.findById(userId);
             if (!user) {
                 throw new NotFoundException('User not found');
@@ -386,20 +381,20 @@ export class PostService {
             const conditions: Array<any> = [
                 { privacy: 'public' },
                 { privacy: 'specific', allowedUsers: userId },
-                { privacy: 'friends', author: { $in: friendIds } }, // Bài viết của bạn bè (nếu không phải private)
+                { privacy: 'friends', author: { $in: [...friendIds, userId] } }, // Bài viết của bạn bè và của chính người dùng
             ];
     
             // Lấy tất cả bài viết dựa trên điều kiện
             const posts = await this.PostModel.find({
                 $and: [
                     { privacy: { $ne: 'private' } }, // Loại trừ bài viết private
-                    { $or: conditions }, // Chỉ lấy bài viết công khai, specific, hoặc của bạn bè
+                    { $or: conditions },
                 ],
             })
                 .populate('author', 'firstName lastName avatar birthday')
                 .populate('likes', '_id')
                 .populate('comments', '_id')
-                .lean() // Trả về đối tượng JavaScript thay vì Mongoose document
+                .lean() 
                 .exec();
     
             // Tính điểm xếp hạng cho các bài viết
@@ -421,7 +416,6 @@ export class PostService {
     
             return scoredPosts;
         } catch (error) {
-
             throw new HttpException('An error occurred while fetching posts', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
