@@ -337,8 +337,8 @@ export class PostService {
             // Lấy danh sách bạn bè từ bảng Friend
             const friends = await this.FriendModel.find({
                 $or: [
-                    { sender: userId }, // Bạn bè gửi kết bạn
-                    { receiver: userId }, // Bạn bè nhận kết bạn
+                    { sender: userId }, 
+                    { receiver: userId }, 
                 ],
             }).exec();
     
@@ -350,7 +350,7 @@ export class PostService {
             const conditions: Array<any> = [
                 { privacy: 'public' },
                 { privacy: 'specific', allowedUsers: userId },
-                { author: { $in: friendIds } }, // Bài viết của bạn bè (nếu không phải private)
+                { privacy: 'friends', author: { $in: friendIds } }, // Bài viết của bạn bè (nếu không phải private)
             ];
     
             // Lấy tất cả bài viết dựa trên điều kiện
