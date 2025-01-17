@@ -24,6 +24,7 @@ import { CloudinaryService } from '../cloudinary/cloudinary.service';
 import { UploadAvatarDto } from './dto/uploadAvartar.dto';
 import { UploadCoverImgDto } from './dto/uploadCoverImg.dto';
 import { Friend } from './schemas/friend.schema';
+import { Multer } from 'multer';
 
 @Injectable()
 export class UserService {
@@ -35,6 +36,7 @@ export class UserService {
     private configService: ConfigService,
     private cloudinaryService: CloudinaryService,
     private otpService: OtpService,
+
   ) { }
 
   async register(registerDto: RegisterDto): Promise<User> {
@@ -92,21 +94,18 @@ export class UserService {
   async refreshToken(userId: string, refreshToken: string): Promise<{ accessToken: string }> {
     const user = await this.UserModel.findById(userId);
 
-    // Kiểm tra xem người dùng có tồn tại và refresh token có hợp lệ không
     if (!user || user.refreshToken !== refreshToken) {
       throw new HttpException('Invalid refresh token', HttpStatus.UNAUTHORIZED);
     }
 
-    // Xác thực refresh token bằng secret cho refresh token
     try {
       this.jwtService.verify(refreshToken, {
-        secret: this.configService.get<string>('JWT_REFRESH_SECRET'), // Sử dụng secret cho refresh token từ config
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'), 
       });
     } catch (error) {
       throw new HttpException('Refresh token expired', HttpStatus.UNAUTHORIZED);
     }
 
-    // Tạo mới access token (không cần truyền secret và expiresIn vì đã cấu hình trong module)
     const accessToken = this.jwtService.sign({ userId });
 
     return { accessToken };

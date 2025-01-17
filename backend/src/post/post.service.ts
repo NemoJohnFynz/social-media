@@ -10,6 +10,7 @@ import { settingPrivacyDto } from './dto/settingPrivacy.dto';
 import { UpdatePostDto } from './dto/updatePost.dto';
 import { PostF } from './interface/PostHomeFeed.interface';
 import { Friend } from 'src/user/schemas/friend.schema';
+import { firebase } from 'googleapis/build/src/apis/firebase';
 
 
 @Injectable()
@@ -357,31 +358,32 @@ export class PostService {
     
     
 
-    async getHomeFeed(userId: string): Promise<PostF[]> {
+    async getHomeFeed(userId: Types.ObjectId): Promise<PostF[]> {
         try {
             // Tìm người dùng và kiểm tra xem người dùng có tồn tại không
             const user = await this.UserModel.findById(userId);
             if (!user) {
                 throw new NotFoundException('User not found');
-            }
+            } //ok
     
             // Lấy danh sách bạn bè từ bảng Friend
             const friends = await this.FriendModel.find({
                 $or: [
-                    { sender: userId }, 
-                    { receiver: userId }, 
+                    { sender: userId.toString() }, 
+                    { receiver: userId.toString() }, 
                 ],
-            }).exec();
+            }).exec(); //bug ở đây 
+            console.log("friends",friends);
     
             const friendIds = friends.map(friend => {
-                return friend.sender.toString() === userId ? friend.receiver : friend.sender;
+                return friend.sender.toString() === userId.toString() ? friend.receiver : friend.sender;
             });
-    
-            // Điều kiện lọc bài viết
+            const useridSting = userId.toString();
+            // Điều kiện lọc bài viết // vấn đề: chỉ lấy được post privacy public
             const conditions: Array<any> = [
-                { privacy: 'public' },
-                { privacy: 'specific', allowedUsers: userId },
-                { privacy: 'friends', author: { $in: [...friendIds, userId] } }, // Bài viết của bạn bè và của chính người dùng
+                { privacy: 'public' }, // ok
+                { privacy: 'specific', allowedUsers: userId },// ok
+                { privacy: 'friends', author: { $in: [...friendIds, useridSting] } }, // maybe kiểu dữ liệu
             ];
     
             // Lấy tất cả bài viết dựa trên điều kiện

@@ -8,6 +8,7 @@ import { User } from '../user/schemas/user.schemas';
 import { OptionalAuthGuard } from '../user/guard/optional.guard';
 import { EventService } from 'src/event/event.service';
 import { settingPrivacyDto } from './dto/settingPrivacy.dto';
+import { Types } from 'mongoose';
 
 @Controller('post')
 export class PostController {
@@ -165,7 +166,8 @@ export class PostController {
     @UseGuards(AuthGuardD)
     async getHomeFeed(@CurrentUser() currentUser: User) {
       const currentUserId = currentUser ? currentUser._id.toString() : undefined;
-      return this.postService.getHomeFeed(currentUserId);
+      const swageUserId = new Types.ObjectId(currentUserId);
+      return this.postService.getHomeFeed(swageUserId);
     }
 
     @Get('friend/:userId')
