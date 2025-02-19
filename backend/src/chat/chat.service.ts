@@ -415,7 +415,6 @@ export class ChatService {
     }
     
     
-    
 
     async revokeAMessage(messageId: Types.ObjectId, userId: Types.ObjectId): Promise<Message | GroupMessage> {
       // Tìm tin nhắn trong MessageModel
@@ -455,9 +454,7 @@ export class ChatService {
       return message;
     }
     
-    
-
-
+  
     async addMembersToGroup(
       addMembersToGroupDto: addMembersToGroupDto,
       groupId: Types.ObjectId,

@@ -31,8 +31,8 @@ export class PostController {
         if (!currentUser) {
             throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
         }
-
-        return this.postService.createPost(createPostDto, currentUser._id.toString(), files.files);
+        const swageUserId = new Types.ObjectId(currentUser._id.toString());
+        return this.postService.createPost(createPostDto, swageUserId, files.files);
     }
 
     @Get('testOptionalGuard')
@@ -151,14 +151,14 @@ export class PostController {
     @UseGuards(AuthGuardD)
     async settingPrivacy(
         @CurrentUser() currentUser: User,
-        @Param('postId') postId: string,
+        @Param('postId') postId: Types.ObjectId,
         @Body() settingPrivacyDto: settingPrivacyDto
     ) {
         if(!currentUser){
             throw new HttpException('User not found or not authenticated', HttpStatus.UNAUTHORIZED);
         }
-        
-        return this.postService.settingPrivacy(postId, settingPrivacyDto, currentUser._id.toString());
+        const swageUserId = new Types.ObjectId(currentUser._id.toString());
+        return this.postService.settingPrivacy(postId, settingPrivacyDto, swageUserId);
     }
     
 

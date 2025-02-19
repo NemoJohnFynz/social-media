@@ -17,7 +17,9 @@ import { ChatModule } from './chat/chat.module';
 import { FriendModule } from './friend/friend.module';
 import { EventModule } from './event/event.module';
 import { EventService } from './event/event.service';
-import { KafkaModule } from './kafka/kafka.module';
+import { ConsumerModule } from './kafka/consumer/consumer.module';
+import { ProducerModule } from './kafka/producer/producer.module';
+
 
 
 @Global()
@@ -37,7 +39,8 @@ import { KafkaModule } from './kafka/kafka.module';
     ChatModule,
     FriendModule,
     EventModule,
-    KafkaModule,
+    ConsumerModule,
+    ProducerModule,
   ],
   controllers: [AppController, OtpController, MailController],
   providers: [AppService, MailService, OtpService],

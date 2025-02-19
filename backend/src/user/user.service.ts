@@ -161,12 +161,14 @@ export class UserService {
     return user;
   }
 
-  async FriendsRequest(senderID: string, receiverId: string): Promise<any> {
+  async FriendsRequest(senderID: Types.ObjectId, receiverId: Types.ObjectId): Promise<any> {
     // Kiểm tra xem hai người đã là bạn bè hay chưa
+    const swageSenderID = new Types.ObjectId(senderID);
+    const swageReceiverId = new Types.ObjectId(receiverId);
     const areAlreadyFriends = await this.FriendModel.findOne({
       $or: [
-        { sender: senderID, receiver: receiverId },
-        { sender: receiverId, receiver: senderID } 
+        { sender: swageSenderID, receiver: swageReceiverId },
+        { sender: swageReceiverId, receiver: swageSenderID } 
       ]
     });
   
@@ -176,8 +178,8 @@ export class UserService {
   
     // Kiểm tra xem đã có yêu cầu kết bạn nào được gửi đi chưa (trong cả hai chiều)
     const [existingSentRequest, existingReceivedRequest] = await Promise.all([
-      this.FriendRequestModel.findOne({ sender: senderID, receiver: receiverId }),
-      this.FriendRequestModel.findOne({ sender: receiverId, receiver: senderID }),
+      this.FriendRequestModel.findOne({ sender: swageSenderID, receiver: swageReceiverId }),
+      this.FriendRequestModel.findOne({ sender: swageReceiverId, receiver: swageSenderID }),
     ]);
   
     if (existingSentRequest) {
@@ -190,7 +192,7 @@ export class UserService {
       
         await Promise.all([
           this.FriendRequestModel.findOneAndUpdate({ _id: existingReceivedRequest._id }, { status: 'accepted' }),
-          this.FriendRequestModel.create({ sender: senderID, receiver: receiverId, status: 'accepted' }),
+          this.FriendRequestModel.create({ sender: swageSenderID, receiver: swageReceiverId, status: 'accepted' }),
         ]);
         return { message: 'Your request has been accepted' };
       } else {
