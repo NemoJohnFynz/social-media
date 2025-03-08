@@ -3,7 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
-import { MongooseModule,  } from '@nestjs/mongoose';
+import { MongooseModule, } from '@nestjs/mongoose';
 import { PostModule } from './post/post.module';
 import { CommentModule } from './comment/comment.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
@@ -19,6 +19,16 @@ import { EventModule } from './event/event.module';
 import { EventService } from './event/event.service';
 import { ConsumerModule } from './kafka/consumer/consumer.module';
 import { ProducerModule } from './kafka/producer/producer.module';
+import { ScylladbModule } from './scylladb/scylladb.module';
+import { NotificationModule } from './kafka/notification/notification.module';
+import { PublicGroupService } from './public-group/public-group.service';
+import { PublicGroupController } from './public-group/public-group.controller';
+import { PublicGroupModule } from './public-group/public-group.module';
+import { ReportController } from './report/report.controller';
+import { ReportService } from './report/report.service';
+import { ReportModule } from './report/report.module';
+import { WebrtcModule } from './webrtc/webrtc.module';
+
 
 
 
@@ -30,6 +40,9 @@ import { ProducerModule } from './kafka/producer/producer.module';
       isGlobal: true,
     }),
     MongooseModule.forRoot(process.env.MONGO_URI),
+    // MongooseModule.forRoot(process.env.MONGODB_URI_SINK, { connectionName: 'sinkDB' }),
+
+
     UserModule,
     PostModule,
     CommentModule,
@@ -41,8 +54,14 @@ import { ProducerModule } from './kafka/producer/producer.module';
     EventModule,
     ConsumerModule,
     ProducerModule,
+    // ScylladbModule,
+    NotificationModule,
+    PublicGroupModule,
+    ReportModule,
+    WebrtcModule,
+
   ],
-  controllers: [AppController, OtpController, MailController],
-  providers: [AppService, MailService, OtpService],
+  controllers: [AppController, OtpController, MailController, PublicGroupController, ReportController],
+  providers: [AppService, MailService, OtpService, PublicGroupService, ReportService],
 })
-export class AppModule {}
+export class AppModule { }

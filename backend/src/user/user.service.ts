@@ -91,28 +91,29 @@ export class UserService {
     };
   }
 
-  async refreshToken(userId: string, refreshToken: string): Promise<{ accessToken: string }> {
-    const user = await this.UserModel.findById(userId);
-
-    if (!user || user.refreshToken !== refreshToken) {
-      throw new HttpException('Invalid refresh token', HttpStatus.UNAUTHORIZED);
-    }
-
+  async refreshToken(refreshToken: string): Promise<{ accessToken: string }> {
     try {
-      this.jwtService.verify(refreshToken, {
-        secret: this.configService.get<string>('JWT_REFRESH_SECRET'), 
-      });
+        const decoded = this.jwtService.verify(refreshToken, {
+            secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+        });
+
+        const user = await this.UserModel.findById(decoded.userId);
+        if (!user || user.refreshToken !== refreshToken) {
+            throw new HttpException('Invalid refresh token', HttpStatus.UNAUTHORIZED);
+        }
+
+        const newAccessToken = this.jwtService.sign({ userId: decoded.userId });
+
+        return { accessToken: newAccessToken };
     } catch (error) {
-      throw new HttpException('Refresh token expired', HttpStatus.UNAUTHORIZED);
+        throw new HttpException('Refresh token expired or invalid', HttpStatus.UNAUTHORIZED);
     }
-
-    const accessToken = this.jwtService.sign({ userId });
-
-    return { accessToken };
-  }
+}
 
 
-  async login(loginDto: LoginDto): Promise<{ accessToken: string }> {
+
+
+  async login(loginDto: LoginDto) {
     const { numberPhone, email, password } = loginDto;
 
     if (!numberPhone && !email) {
@@ -129,13 +130,16 @@ export class UserService {
     if (!user) {
       throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     }
+
+    if(!user.isActive) {
+      throw new HttpException('User is not active', HttpStatus.UNAUTHORIZED);
+    }
     // Kiểm tra mật khẩu
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
     }
-
     return this.generateToken(user._id);
   }
 
@@ -211,8 +215,8 @@ export class UserService {
   }
 
   async acceptRequestFriends(
-    currentUserId: string,
-    friendRequestId: string,
+    currentUserId: Types.ObjectId,
+    friendRequestId: Types.ObjectId,
   ): Promise<{ friend: Friend; senderId: string }> {
     const friendRequest = await this.FriendRequestModel.findById(friendRequestId);
   
@@ -222,7 +226,7 @@ export class UserService {
   
     const { sender, receiver } = friendRequest;
   
-    if (currentUserId !== receiver.toString()) {
+    if (currentUserId.toString() !== receiver.toString()) {
       throw new ForbiddenException('You are not authorized to accept this friend request');
     }
   
@@ -256,8 +260,8 @@ export class UserService {
 
 
   async rejectFriendRequest(
-    currentUserId: string,
-    friendRequestId: string,
+    currentUserId: Types.ObjectId,
+    friendRequestId: Types.ObjectId,
   ): Promise<{ message: string }> {
 
     const friendRequest = await this.FriendRequestModel.findById(friendRequestId);
@@ -267,7 +271,7 @@ export class UserService {
     }
     const { receiver } = friendRequest;
 
-    if (currentUserId !== receiver.toString()) {
+    if (currentUserId.toString() !== receiver.toString()) {
       throw new ForbiddenException('You are not authorized to reject this friend request');
     }
     await this.FriendRequestModel.findByIdAndDelete(friendRequestId);
@@ -275,20 +279,20 @@ export class UserService {
     return { message: 'Friend request rejected successfully' };
   }
 
-  async removeFriendRequest(currentUserId: string, friendRequestId: string,): Promise<{ message: string, FriendRequest: FriendRequest }> {
+  async removeFriendRequest(currentUserId: Types.ObjectId, friendRequestId: Types.ObjectId,): Promise<{ message: string, FriendRequest: FriendRequest }> {
     const friendRequest = await this.FriendRequestModel.findById(friendRequestId);
     if (!friendRequest) {
       throw new NotFoundException('No such friend request found');
     }
     const sender = friendRequest.sender;
-    if (currentUserId !== sender.toString()) {
+    if (currentUserId.toString() !== sender.toString()) {
       throw new ForbiddenException('You are not authorized to delete this friend request');
     }
     await this.FriendRequestModel.findByIdAndDelete(friendRequestId);
     return { message: 'Friend request deleted successfully' , FriendRequest: friendRequest};
   }
 
-  async unFriend(currentUserId: string, friendId: string): Promise<Friend> {
+  async unFriend(currentUserId: Types.ObjectId, friendId: Types.ObjectId): Promise<Friend> {
     try {
 
       const Friend =  await this.FriendModel.findOneAndDelete({
@@ -305,11 +309,11 @@ export class UserService {
 }
 
 
-  async getMyFriendRequest(userId: string): Promise<FriendRequest[]> {
+  async getMyFriendRequest(userId: Types.ObjectId): Promise<FriendRequest[]> {
     return this.FriendRequestModel.find({ receiver: userId });
   }
 
-  async getMySentFriendRequest(userId: string): Promise<FriendRequest[]> {
+  async getMySentFriendRequest(userId: Types.ObjectId): Promise<FriendRequest[]> {
     return this.FriendRequestModel.find({ sender: userId });
   }
 
@@ -329,7 +333,7 @@ export class UserService {
 // }
 
 
-  async getMyFriend(userId: string): Promise<Friend[]> {
+  async getMyFriend(userId: Types.ObjectId): Promise<Friend[]> {
 
     const friendList = await this.FriendModel.find({
       $or: [
@@ -354,7 +358,7 @@ export class UserService {
     });
   }
 
-  async getListFriendAnother(userId: string): Promise<Friend[]> {
+  async getListFriendAnother(userId: Types.ObjectId): Promise<Friend[]> {
     const friendList = await this.FriendModel.find({
       $or: [
         { sender: userId },
@@ -443,10 +447,13 @@ export class UserService {
   }
 
 
-  async findAllMySenderFriendRequest(userId : string): Promise<FriendRequest[]> {
+  async findAllMySenderFriendRequest(userId : Types.ObjectId): Promise<FriendRequest[]> {
     return this.FriendRequestModel.find({ sender: userId });
   }
 
+  async findAllUserForAdmin(): Promise<User[]> {
+    return this.UserModel.find().select('-password -refreshToken -createdAt -updatedAt -otp -otpExpirationTime -bookmarks').exec();
+  }
 
   async findAllUsers(userId: string): Promise<any[]> {
     try {
@@ -665,6 +672,15 @@ export class UserService {
     
       throw new HttpException('Could not retrieve users', HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  async activeUser(userId: Types.ObjectId): Promise<User> {
+    const user = await this.UserModel.findById(userId);
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+    user.isActive = false;
+    return await user.save();
   }
 
 }

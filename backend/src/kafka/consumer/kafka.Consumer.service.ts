@@ -1,58 +1,67 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { Kafka, Consumer, logLevel } from 'kafkajs';
+import { Kafka, Consumer, logLevel, EachMessagePayload, } from 'kafkajs';
 import { EventService } from '../../event/event.service';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class ConsumerService implements OnModuleInit, OnModuleDestroy {
   private kafka: Kafka;
   private consumer: Consumer;
 
-  constructor(private readonly eventService: EventService) {
-    if (!process.env.KAFKA_BROKER || !process.env.KAFKA_USERNAME || !process.env.KAFKA_PASSWORD) {
+  constructor(
+    private readonly eventService: EventService,
+    private readonly notificationService: NotificationService,
+  ) {
+    if (!process.env.REDPANDA_BROKER || !process.env.REDPANDA_USERNAME || !process.env.REDPANDA_PASSWORD) {
       throw new Error('❌ Kafka environment variables are missing!');
     }
 
     this.kafka = new Kafka({
-      clientId: process.env.KAFKA_CLIENT_ID || 'nestjs-kafka-consumer',
-      brokers: [process.env.KAFKA_BROKER],
+      clientId: process.env.REDPANDA_CLIENT_ID,
+      brokers: [process.env.REDPANDA_BROKER],
       ssl: true,
       sasl: {
-        mechanism: 'plain',
-        username: process.env.KAFKA_USERNAME,
-        password: process.env.KAFKA_PASSWORD,
+        mechanism: 'scram-sha-256',
+        username: process.env.REDPANDA_USERNAME,
+        password: process.env.REDPANDA_PASSWORD,
       },
-      connectionTimeout: 10000, // Tăng timeout lên 10s
+      connectionTimeout: 10000, 
       logLevel: logLevel.INFO,
     });
 
-    this.consumer = this.kafka.consumer({ groupId: 'connect-lcc-77ojdj' });
+    this.consumer = this.kafka.consumer({ groupId: 'GRnotification' });
   }
 
   async onModuleInit() {
     try {
-      console.log('🔄 Connecting Kafka Consumer...');
-      await this.consumer.connect();
-      console.log('✅ Kafka Consumer connected!');
+        console.log('🔄 Connecting Kafka Consumer...');
+        await this.consumer.connect(); 
+        console.log('✅ Kafka Consumer connected!');
+         
 
-      await this.consumer.subscribe({ topic: 'notification', fromBeginning: false });
+        await this.consumer.subscribe({ topic: 'notification', fromBeginning: false, });
+        await this.consumer.subscribe({ topic: 'group', fromBeginning: false });
+        await this.consumer.subscribe({ topic: 'mypost', fromBeginning: false });
 
-      await this.consumer.run({
-        eachMessage: async ({ topic, partition, message }) => {
-          try {
-            const payload = JSON.parse(message.value.toString());
-            console.log(`📥 Received message from "${topic}":`, payload);
+        // từ đoạn này là xử lý các message từ Kafka
+        // nó không liên quan đến ScyllaDB, nhưng nó cũng là một service
+        // và không liên quan đến connnect ở trên đây là 1 phần riêng
 
-            // Gửi thông báo qua WebSocket
-            this.eventService.notificationToUser(payload.userId, 'newNotification', payload);
-          } catch (error) {
-            console.error(`❌ Error processing message from topic ${topic}:`, error);
-          }
-        },
-      });
+        await this.consumer.run({
+          eachMessage: async ({ topic, partition, message }: EachMessagePayload) => {
+            await this.notificationService.handleKafkaEvent(topic, message);
+            
+          },
+        });
+        
+  
     } catch (error) {
-      console.error('❌ Kafka Consumer connection failed:', error);
+        console.error('❌ Kafka Consumer connection failed:', error);
+        setTimeout(() => this.onModuleInit(), 5000);
     }
-  }
+}
+
+  
 
   async onModuleDestroy() {
     console.log('🔌 Disconnecting Kafka Consumer...');
