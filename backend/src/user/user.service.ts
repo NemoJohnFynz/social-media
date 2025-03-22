@@ -344,7 +344,7 @@ export class UserService {
     .populate({
       path: 'sender',
       select: 'firstName lastName avatar',
-      match: { _id: { $ne: userId } }
+      match: { _id: { $ne: userId } } 
     })
     .populate({
       path: 'receiver',
