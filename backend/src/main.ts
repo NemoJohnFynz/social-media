@@ -32,7 +32,7 @@ async function bootstrap() {
     allowedHeaders: 'Content-Type,Authorization',
     credentials: true,
   });
-  
+
 
   const config = new DocumentBuilder()
     .setTitle('Function API social network')
